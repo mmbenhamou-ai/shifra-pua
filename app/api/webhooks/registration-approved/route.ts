@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+import { checkWebhookAuth } from '../_auth';
+
 function adminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,6 +13,9 @@ function adminClient() {
 
 // n8n polling : GET /api/webhooks/registration-approved?since=<ISO_DATE>
 export async function GET(req: NextRequest) {
+  const authErr = checkWebhookAuth(req);
+  if (authErr) return authErr;
+
   const since = req.nextUrl.searchParams.get('since');
 
   const admin = adminClient();

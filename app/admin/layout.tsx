@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { LayoutDashboard, UserPlus, UtensilsCrossed, Users as UsersIcon } from 'lucide-react';
+import { LayoutDashboard, UserPlus, UtensilsCrossed, Users as UsersIcon, CalendarDays } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import LogoutButton from '@/app/components/LogoutButton';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'לוח בקרה' },
   { href: '/admin/registrations', label: 'הרשמות' },
   { href: '/admin/menus', label: 'תפריטים' },
   { href: '/admin/users', label: 'משתמשות' },
+  { href: '/admin/calendar', label: 'לוח שנה' },
 ];
 
 export default async function AdminLayout({
@@ -42,6 +44,7 @@ export default async function AdminLayout({
       >
         <div className="mx-auto flex max-w-md flex-col gap-2 px-4 py-3">
           <div className="flex items-center justify-between">
+            <LogoutButton />
             <div className="text-2xl font-bold tracking-tight text-white">
               שפרה פועה
             </div>
@@ -60,13 +63,11 @@ export default async function AdminLayout({
         <div className="mx-auto flex max-w-md items-stretch justify-between gap-1 px-2 py-2">
           {NAV_ITEMS.map((item, index) => {
             const Icon =
-              index === 0
-                ? LayoutDashboard
-                : index === 1
-                  ? UserPlus
-                  : index === 2
-                    ? UtensilsCrossed
-                    : UsersIcon;
+              index === 0 ? LayoutDashboard
+              : index === 1 ? UserPlus
+              : index === 2 ? UtensilsCrossed
+              : index === 3 ? UsersIcon
+              : CalendarDays;
 
             return (
               <Link

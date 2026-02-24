@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import LogoutButton from '@/app/components/LogoutButton';
 
 export default async function BeneficiaryLayout({ children }: { children: ReactNode }) {
   const supabase = await createSupabaseServerClient();
@@ -25,8 +26,9 @@ export default async function BeneficiaryLayout({ children }: { children: ReactN
     >
       <header className="w-full px-4 py-3 shadow-md" style={{ backgroundColor: '#811453' }}>
         <div className="mx-auto flex max-w-md items-center justify-between">
-          <span className="text-sm text-[#F7D4E2]">👶 יולדת</span>
+          <LogoutButton />
           <h1 className="text-xl font-bold text-white">שפרה פועה</h1>
+          <a href="/profile" className="text-sm text-[#F7D4E2] transition active:opacity-70">👤</a>
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-5">

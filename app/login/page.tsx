@@ -6,6 +6,13 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 type Stage = 'phone' | 'code';
 
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('972')) return '+' + digits;
+  if (digits.startsWith('0')) return '+972' + digits.slice(1);
+  return '+972' + digits;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>('phone');
@@ -19,30 +26,19 @@ export default function LoginPage() {
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    const normalizedPhone = phone.trim();
-    if (!normalizedPhone) {
-      setError('נא להזין מספר טלפון');
-      return;
-    }
+    const normalized = normalizePhone(phone.trim());
+    if (!phone.trim()) { setError('נא להזין מספר טלפון'); return; }
 
     setLoading(true);
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: normalizedPhone,
-        options: {
-          channel: 'sms',
-        },
+        phone: normalized,
+        options: { channel: 'sms' },
       });
-
-      if (otpError) {
-        setError(otpError.message || 'שגיאה בשליחת קוד ה-SMS');
-        return;
-      }
-
+      if (otpError) { setError(otpError.message || 'שגיאה בשליחת קוד ה-SMS'); return; }
       setStage('code');
-    } catch (err) {
-      setError('אירעה שגיאה בלתי צפויה. נסי שוב מאוחר יותר.');
+    } catch {
+      setError('אירעה שגיאה בלתי צפויה. נסי שוב.');
     } finally {
       setLoading(false);
     }
@@ -51,148 +47,190 @@ export default function LoginPage() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-
-    const normalizedPhone = phone.trim();
+    const normalized = normalizePhone(phone.trim());
     const trimmedCode = code.trim();
-
-    if (!trimmedCode) {
-      setError('נא להזין את הקוד שנשלח אלייך');
-      return;
-    }
+    if (!trimmedCode) { setError('נא להזין את הקוד'); return; }
 
     setLoading(true);
     try {
       const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        phone: normalizedPhone,
+        phone: normalized,
         token: trimmedCode,
         type: 'sms',
       });
-
       if (verifyError || !data.session) {
-        setError(verifyError?.message || 'קוד לא תקין, נא לנסות שוב');
+        setError(verifyError?.message || 'קוד לא תקין, נסי שוב');
         return;
       }
-
-      const userId = data.session.user.id;
-
-      const { data: userProfile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('users')
         .select('role, approved')
-        .eq('id', userId)
+        .eq('id', data.session.user.id)
         .maybeSingle();
 
-      if (profileError) {
-        setError('שגיאה בטעינת פרטי המשתמש');
-        return;
-      }
+      if (!profile) { router.replace('/signup'); return; }
+      if (!profile.approved) { router.replace('/signup/pending'); return; }
 
-      if (!userProfile) {
-        router.replace('/signup');
-        return;
-      }
-
-      const { role } = userProfile as { role: string };
-
-      if (role === 'admin') {
-        router.replace('/admin');
-      } else if (role === 'beneficiary') {
-        router.replace('/beneficiary');
-      } else if (role === 'cook') {
-        router.replace('/cook');
-      } else if (role === 'driver') {
-        router.replace('/driver');
-      } else {
-        router.replace('/');
-      }
-    } catch (err) {
-      setError('אירעה שגיאה בלתי צפויה. נסי שוב מאוחר יותר.');
+      const routes: Record<string, string> = {
+        admin: '/admin', beneficiary: '/beneficiary',
+        cook: '/cook', driver: '/driver',
+      };
+      router.replace(routes[profile.role as string] ?? '/');
+    } catch {
+      setError('אירעה שגיאה בלתי צפויה. נסי שוב.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-      <div className="w-full max-w-md bg-white shadow-md rounded-2xl p-8" dir="rtl">
-        <h1 className="text-2xl font-bold mb-6 text-right">כניסה למערכת</h1>
-
-        {stage === 'phone' && (
-          <form onSubmit={handleSendCode} className="space-y-4">
-            <div className="flex flex-col items-end gap-1">
-              <label htmlFor="phone" className="text-sm font-medium">
-                מספר טלפון
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                inputMode="tel"
-                dir="ltr"
-                className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="05X-XXXXXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600 text-right">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 disabled:opacity-60"
-            >
-              {loading ? 'שולחת קוד...' : 'שלחי לי קוד ב-SMS'}
-            </button>
-          </form>
-        )}
-
-        {stage === 'code' && (
-          <form onSubmit={handleVerifyCode} className="space-y-4">
-            <p className="text-right text-sm text-zinc-600">
-              שלחנו לך קוד SMS ל־{phone}. נא להקליד אותו כאן:
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-4"
+      dir="rtl"
+      style={{ background: 'linear-gradient(160deg, #FFF0F7 0%, #FBE4F0 50%, #F5C6DE 100%)' }}
+    >
+      {/* כרטיס */}
+      <div className="w-full max-w-sm">
+        {/* לוגו */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <div
+            className="flex h-20 w-20 items-center justify-center rounded-3xl text-3xl font-bold text-white shadow-lg"
+            style={{ backgroundColor: '#811453' }}
+          >
+            שפ
+          </div>
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#811453' }}>
+              שפרה פועה
+            </h1>
+            <p className="text-sm" style={{ color: '#7C365F' }}>
+              ארוחות חמות לאחר הלידה
             </p>
+          </div>
+        </div>
 
-            <div className="flex flex-col items-end gap-1">
-              <label htmlFor="code" className="text-sm font-medium">
-                קוד אימות
-              </label>
-              <input
-                id="code"
-                type="text"
-                inputMode="numeric"
-                dir="ltr"
-                className="w-full rounded-xl border border-zinc-300 px-3 py-2 text-right focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.3em]"
-                placeholder="123456"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </div>
+        {/* טופס */}
+        <div className="rounded-3xl bg-white px-6 py-7 shadow-xl shadow-[#811453]/10">
+          {stage === 'phone' ? (
+            <form onSubmit={handleSendCode} className="space-y-5">
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>
+                  כניסה למערכת
+                </h2>
+                <p className="text-sm text-right" style={{ color: '#7C365F' }}>
+                  הזיני את מספר הטלפון שלך לקבלת קוד SMS
+                </p>
+              </div>
 
-            {error && (
-              <p className="text-sm text-red-600 text-right">{error}</p>
-            )}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-right" style={{ color: '#4A0731' }}>
+                  מספר טלפון
+                </label>
+                <div className="flex items-center overflow-hidden rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] focus-within:border-[#811453] transition-colors">
+                  <span
+                    className="flex-shrink-0 px-3 py-3 text-sm font-semibold border-l border-[#F7D4E2]"
+                    style={{ color: '#811453' }}
+                  >
+                    🇮🇱 +972
+                  </span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    dir="ltr"
+                    className="flex-1 bg-transparent px-3 py-3 text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none"
+                    placeholder="05X-XXXXXXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 disabled:opacity-60"
-            >
-              {loading ? 'מאמתת...' : 'כניסה'}
-            </button>
+              {error && (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-right text-red-700">
+                  {error}
+                </p>
+              )}
 
-            <button
-              type="button"
-              className="w-full text-sm text-right text-blue-700 underline"
-              onClick={() => setStage('phone')}
-            >
-              להחליף מספר טלפון
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
+                style={{ backgroundColor: '#811453' }}
+              >
+                {loading ? '...שולחת קוד' : 'שלחי לי קוד SMS ←'}
+              </button>
+
+              <p className="text-center text-xs" style={{ color: '#7C365F' }}>
+                עדיין לא רשומה?{' '}
+                <a href="/signup" className="font-semibold underline" style={{ color: '#811453' }}>
+                  הרשמה כאן
+                </a>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="space-y-5">
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>
+                  קוד אימות
+                </h2>
+                <p className="text-sm text-right" style={{ color: '#7C365F' }}>
+                  שלחנו קוד SMS למספר{' '}
+                  <span className="font-semibold" dir="ltr">
+                    +972 {phone.replace(/\D/g, '').replace(/^0/, '')}
+                  </span>
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-right" style={{ color: '#4A0731' }}>
+                  קוד בן 6 ספרות
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
+                  maxLength={6}
+                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-center text-2xl font-bold tracking-[0.4em] text-zinc-900 focus:border-[#811453] focus:outline-none transition-colors"
+                  placeholder="• • • • • •"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                />
+              </div>
+
+              {error && (
+                <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-right text-red-700">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
+                style={{ backgroundColor: '#811453' }}
+              >
+                {loading ? '...מאמתת' : 'כניסה ←'}
+              </button>
+
+              <button
+                type="button"
+                className="w-full text-center text-sm font-medium transition active:opacity-70"
+                style={{ color: '#811453' }}
+                onClick={() => { setStage('phone'); setCode(''); setError(null); }}
+              >
+                ← להחליף מספר טלפון
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* dev hint */}
+        {process.env.NODE_ENV !== 'production' && (
+          <p className="mt-4 text-center text-xs text-zinc-400">
+            <a href="/test-login" className="underline">כניסת פיתוח</a>
+          </p>
         )}
       </div>
     </div>
   );
 }
-

@@ -6,6 +6,14 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export default function TestLoginPage() {
   const router = useRouter();
+
+  if (process.env.NODE_ENV === 'production') {
+    return (
+      <div className="flex min-h-screen items-center justify-center" dir="rtl">
+        <p className="text-zinc-500">דף זה אינו זמין בסביבת ייצור.</p>
+      </div>
+    );
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

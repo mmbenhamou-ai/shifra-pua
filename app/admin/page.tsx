@@ -10,14 +10,25 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default async function AdminDashboardPage() {
   const supabase = await createSupabaseServerClient();
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  const in7days = new Date(now);
+  in7days.setDate(in7days.getDate() + 7);
+  const next7 = in7days.toISOString().split('T')[0];
+
+  // 24h window for urgent alert
+  const in24h = new Date(now);
+  in24h.setHours(in24h.getHours() + 24);
+  const next24hDate = in24h.toISOString().split('T')[0];
 
   const [
     { count: activeBeneficiaries },
     { count: mealsToday },
-    { count: openMeals },
+    { count: openMealsNext7 },
     { count: activeVolunteers },
     { data: pendingUsers },
+    { data: urgentMeals },
   ] = await Promise.all([
     supabase
       .from('users')
@@ -34,7 +45,8 @@ export default async function AdminDashboardPage() {
       .from('meals')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'open')
-      .eq('date', today),
+      .gte('date', today)
+      .lte('date', next7),
 
     supabase
       .from('users')
@@ -47,7 +59,23 @@ export default async function AdminDashboardPage() {
       .select('id, name, role, phone, created_at')
       .eq('approved', false)
       .order('created_at', { ascending: false }),
+
+    // repas non couverts dans les 24 prochaines heures
+    supabase
+      .from('meals')
+      .select('id, date, type, beneficiary:beneficiary_id(user:user_id(name))')
+      .eq('status', 'open')
+      .gte('date', today)
+      .lte('date', next24hDate)
+      .order('date', { ascending: true })
+      .limit(20),
   ]);
+
+  const TYPE_LABELS: Record<string, string> = {
+    breakfast: 'ארוחת בוקר',
+    shabbat_friday: 'שבת ליל',
+    shabbat_saturday: 'שבת צהריים',
+  };
 
   const stats = [
     {
@@ -61,8 +89,8 @@ export default async function AdminDashboardPage() {
       gradient: 'from-[#F7D4E2] to-[#FBE4F0]',
     },
     {
-      label: 'ארוחות בהמתנה למתנדבת',
-      value: openMeals ?? 0,
+      label: 'ארוחות פנויות (7 ימים)',
+      value: openMealsNext7 ?? 0,
       gradient: 'from-[#D7263D] to-[#F7B2C4]',
     },
     {
@@ -73,6 +101,7 @@ export default async function AdminDashboardPage() {
   ];
 
   const pending = pendingUsers ?? [];
+  const urgent  = urgentMeals ?? [];
 
   return (
     <div className="space-y-6 pb-2" dir="rtl">
@@ -84,6 +113,44 @@ export default async function AdminDashboardPage() {
           תמונת מצב כללית של המערכת להיום.
         </p>
       </header>
+
+      {/* ── התראה: ארוחות לא מכוסות ב-24 שעות הקרובות ── */}
+      {urgent.length > 0 && (
+        <section className="overflow-hidden rounded-2xl border-2 border-red-400 bg-red-50 shadow-md">
+          <div className="flex items-center justify-between bg-red-500 px-4 py-2.5">
+            <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-red-600">
+              {urgent.length} ארוחות
+            </span>
+            <p className="text-sm font-bold text-white">
+              🚨 ארוחות לא מכוסות — 24 שעות הקרובות
+            </p>
+          </div>
+          <ul className="divide-y divide-red-100 px-4">
+            {urgent.map((m) => {
+              const benName = (m.beneficiary as { user?: { name?: string } } | null)?.user?.name;
+              return (
+                <li key={m.id as string} className="flex items-center justify-between py-2.5">
+                  <span className="text-xs text-red-600">
+                    {new Date(m.date as string).toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'numeric' })}
+                  </span>
+                  <span className="text-sm font-medium text-red-800 text-right">
+                    {TYPE_LABELS[m.type as string] ?? m.type}
+                    {benName ? <span className="text-xs text-red-500"> — {benName}</span> : null}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="px-4 pb-3">
+            <a
+              href="/admin/registrations"
+              className="block min-h-[44px] w-full rounded-xl bg-red-500 pt-2.5 text-center text-sm font-bold text-white transition active:opacity-80"
+            >
+              שלחי הודעה למתנדבות →
+            </a>
+          </div>
+        </section>
+      )}
 
       {/* ── Stats 2×2 ── */}
       <section className="grid grid-cols-2 gap-3">

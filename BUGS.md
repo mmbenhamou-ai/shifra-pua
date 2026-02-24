@@ -2,70 +2,54 @@
 
 ---
 
-## 🔴 Critique — à corriger avant mise en production
+## ✅ Corrigés
 
-### BUG-01 : Icônes PWA manquantes
-**Fichiers :** `public/icon-192.png`, `public/icon-512.png`
-**Impact :** L'app ne peut pas être installée sur Android sans ces icônes (Chrome affiche une erreur dans le manifest).
-**Solution :** Créer ou exporter deux icônes PNG aux dimensions 192×192 et 512×512 px avec le logo de l'app.
+### BUG-01 : Icônes PWA ✅ CORRIGÉ (RAPPORT2)
+`public/icon-192.png` et `public/icon-512.png` générés avec Python.
+Note : icônes sans texte (Pillow non disponible). Remplacer manuellement par des icônes de qualité.
 
-### BUG-02 : Service Worker non enregistré automatiquement
-**Fichier :** `public/sw.js`
-**Impact :** Le SW est présent mais n'est pas enregistré par le code applicatif — l'app n'est pas réellement offline-capable.
-**Solution :** Ajouter dans `app/layout.tsx` un script d'enregistrement :
-```html
-<script dangerouslySetInnerHTML={{ __html: `
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
-` }} />
-```
-Ou utiliser un Client Component dédié `app/ServiceWorkerRegister.tsx`.
+### BUG-02 : Service Worker non enregistré ✅ CORRIGÉ (RAPPORT4)
+`app/components/ServiceWorkerRegister.tsx` créé et intégré dans `app/layout.tsx`.
+Le SW s'enregistre automatiquement au chargement de l'app.
 
-### BUG-03 : next-pwa incompatible avec Next.js 16
-**Impact :** `next-pwa` (dernière version 5.x) ne supporte pas Next.js 16 et crasherait au build.
-**Décision :** Utilisation du manifest natif Next.js + SW manuel. Surveiller la sortie d'une version compatible.
+### BUG-04 : Pas d'authentification sur les webhooks ✅ CORRIGÉ (RAPPORT4)
+`app/api/webhooks/_auth.ts` créé avec `checkWebhookAuth()`.
+Tous les webhooks vérifient `x-webhook-secret` ou `?secret=` contre `process.env.WEBHOOK_SECRET`.
+Si `WEBHOOK_SECRET` n'est pas défini (dev), la vérification est ignorée.
+
+### BUG-05 : test-login accessible en production ✅ CORRIGÉ (RAPPORT4)
+`app/test-login/page.tsx` : affiche un message d'erreur si `NODE_ENV === 'production'`.
+
+### BUG-07 : Pas de feedback visuel pendant les Server Actions ✅ CORRIGÉ (RAPPORT3)
+Tous les boutons d'action dans cook/driver/beneficiary utilisent `useTransition` avec état `isPending`.
 
 ---
 
-## 🟡 Mineur — à corriger avant utilisation réelle
+## 🔴 Critique — à corriger avant mise en production
 
-### BUG-04 : Pas d'authentification sur les webhooks
-**Fichiers :** `app/api/webhooks/*/route.ts`
-**Impact :** Les endpoints sont publics — n'importe qui peut lire les données si l'URL est connue.
-**Solution :** Ajouter une vérification de token dans les headers :
-```typescript
-const token = req.headers.get('x-webhook-secret');
-if (token !== process.env.WEBHOOK_SECRET) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
-```
-Ajouter `WEBHOOK_SECRET` dans `.env.local` et configurer le même secret dans n8n.
+### BUG-03 : next-pwa incompatible avec Next.js 16
+**Impact :** `next-pwa` (5.x) ne supporte pas Next.js 16.
+**Décision :** Manifest natif + SW manuel. Aucune action requise.
 
-### BUG-05 : test-login accessible en production
-**Fichier :** `app/test-login/page.tsx`, `app/api/dev-login/route.ts`
-**Impact :** La page de test crée un utilisateur admin avec un mot de passe connu — risque de sécurité.
-**Solution :** L'API route vérifie déjà `NODE_ENV !== 'production'`, mais la page `/test-login` elle-même n'est pas bloquée. Ajouter une vérification similaire dans le composant page.
+---
+
+## 🟡 Mineur — à corriger si nécessaire
 
 ### BUG-06 : Pas de pagination sur les listes admin
 **Fichiers :** `app/admin/registrations/page.tsx`, `app/admin/users/page.tsx`
-**Impact :** Si le nombre d'utilisatrices dépasse ~100, les requêtes Supabase renverront 100 lignes max (limite par défaut) sans avertissement.
-**Solution :** Ajouter `.range(0, 49)` + pagination ou scroll infini.
-
-### BUG-07 : Pas de feedback visuel pendant les Server Actions
-**Impact :** Quand une מבשלת clique "לקחתי על עצמי", il n'y a pas de spinner — l'utilisatrice peut cliquer plusieurs fois.
-**Solution :** Convertir les boutons d'action en Client Components avec `useTransition` et état `pending`, comme `CreateMenuForm.tsx`.
+**Impact :** Limite Supabase à 100 lignes par défaut.
+**Solution :** Ajouter `.range(0, 49)` + boutons de pagination.
 
 ### BUG-08 : start_date dans beneficiaries peut être antérieure à aujourd'hui
-**Impact :** Si une יולדת s'inscrit et met `start_date` dans le passé, les repas passés sont créés avec `status = open` sans être jamais assignés.
-**Solution :** Ajouter une validation côté serveur dans `signup/actions.ts` pour que `start_date >= aujourd'hui`, ou filtrer les repas passés lors de l'affichage.
+**Impact :** Repas passés créés avec status=open inutiles.
+**Solution :** Validation dans `signup/actions.ts` : `start_date >= today`.
 
 ---
 
-## 🟢 Améliorations futures (non-bugs)
+## 🟢 Améliorations futures
 
-- **Notifications SMS** : intégrer Twilio/Vonage via n8n pour notifier les מתנדבות quand un repas est disponible.
-- **Coordonnées GPS** : stocker `lat/lng` dans `users.address_lat` et `users.address_lng` pour des liens Waze plus précis.
-- **Page profil** : permettre à chaque utilisatrice de modifier ses informations.
-- **Vue calendrier admin** : afficher les repas dans un calendrier hebdomadaire.
-- **Export CSV** : permettre à l'admin d'exporter les données des repas/utilisatrices.
+- **Notifications SMS** : intégrer Twilio/Vonage via n8n.
+- **Coordonnées GPS** : `users.address_lat` / `users.address_lng` pour Waze précis.
+- **Icônes PWA de qualité** : remplacer les icônes générées par un vrai design.
+- **Export CSV** : exporter les données des repas/utilisatrices.
+- **Pagination admin** : BUG-06 ci-dessus.
