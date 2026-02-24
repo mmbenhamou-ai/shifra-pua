@@ -53,3 +53,31 @@ Tous les boutons d'action dans cook/driver/beneficiary utilisent `useTransition`
 - **Icônes PWA de qualité** : remplacer les icônes générées par un vrai design.
 - **Export CSV** : exporter les données des repas/utilisatrices.
 - **Pagination admin** : BUG-06 ci-dessus.
+- **notifications_log** : La table `notifications_log` doit être créée en base avec les colonnes : `id` (uuid), `user_id` (uuid), `message` (text), `type` (text), `read` (boolean, default false), `created_at` (timestamptz). Les notifications peuvent être insérées via triggers Supabase ou depuis les Server Actions.
+
+---
+
+## Phase 5 — Notes d'implémentation (RAPPORT5)
+
+### Table notifications_log requise
+```sql
+CREATE TABLE notifications_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  message text NOT NULL,
+  type text,
+  read boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE notifications_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users can read own notifs" ON notifications_log
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "service role can insert" ON notifications_log
+  FOR INSERT WITH CHECK (true);
+```
+
+### Table beneficiaries.end_date requis
+La colonne `end_date` doit exister dans la table `beneficiaries` pour le compte à rebours.
+```sql
+ALTER TABLE beneficiaries ADD COLUMN IF NOT EXISTS end_date date;
+```

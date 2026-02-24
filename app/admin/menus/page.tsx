@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { toggleMenuActive, deleteMenu } from '../actions/menus';
 import CreateMenuForm from './CreateMenuForm';
+import MenuItemsManager from './MenuItemsManager';
 
 const TYPE_LABELS: Record<string, string> = {
   breakfast:        'ארוחת בוקר',
@@ -78,13 +79,7 @@ export default async function MenusPage() {
                   </span>
                 </div>
 
-                <ul className="px-4 py-2 text-right">
-                  {(m.items as string[]).map((item, i) => (
-                    <li key={i} className="py-0.5 text-sm" style={{ color: '#4A0731' }}>
-                      • {item}
-                    </li>
-                  ))}
-                </ul>
+                <MenuItemsManager menuId={m.id as string} items={m.items as string[]} />
 
                 <div className="flex justify-start gap-2 border-t border-[#FBE4F0] px-4 py-3">
                   <form action={toggleMenuActive.bind(null, m.id as string, m.active as boolean)}>

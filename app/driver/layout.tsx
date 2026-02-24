@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import LogoutButton from '@/app/components/LogoutButton';
+import NotificationBellWrapper from '@/app/components/NotificationBellWrapper';
 
 export default async function DriverLayout({ children }: { children: ReactNode }) {
   const supabase = await createSupabaseServerClient();
@@ -28,7 +29,10 @@ export default async function DriverLayout({ children }: { children: ReactNode }
         <div className="mx-auto flex max-w-md items-center justify-between">
           <LogoutButton />
           <h1 className="text-xl font-bold text-white">שפרה פועה</h1>
-          <a href="/profile" className="text-sm text-[#F7D4E2] transition active:opacity-70">👤</a>
+          <div className="flex items-center gap-2">
+            <NotificationBellWrapper />
+            <a href="/profile" className="text-sm text-[#F7D4E2] transition active:opacity-70">👤</a>
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-5">

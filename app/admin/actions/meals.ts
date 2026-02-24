@@ -1,0 +1,69 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+
+function adminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+}
+
+export async function updateMealStatus(mealId: string, status: string) {
+  const admin = adminClient();
+  const { error } = await admin.from('meals').update({ status }).eq('id', mealId);
+  if (error) throw new Error('שגיאה בעדכון סטטוס: ' + error.message);
+  revalidatePath('/admin/meals');
+}
+
+export async function assignCook(mealId: string, cookId: string) {
+  const admin = adminClient();
+  const { error } = await admin
+    .from('meals')
+    .update({ cook_id: cookId || null, status: cookId ? 'cook_assigned' : 'open' })
+    .eq('id', mealId);
+  if (error) throw new Error('שגיאה בהקצאת מבשלת: ' + error.message);
+  revalidatePath('/admin/meals');
+}
+
+export async function assignDriver(mealId: string, driverId: string) {
+  const admin = adminClient();
+  const { error } = await admin
+    .from('meals')
+    .update({ driver_id: driverId || null, status: driverId ? 'driver_assigned' : 'cook_assigned' })
+    .eq('id', mealId);
+  if (error) throw new Error('שגיאה בהקצאת מחלקת: ' + error.message);
+  revalidatePath('/admin/meals');
+}
+
+export async function deleteMeal(mealId: string) {
+  const admin = adminClient();
+  const { error } = await admin.from('meals').delete().eq('id', mealId);
+  if (error) throw new Error('שגיאה במחיקת הארוחה: ' + error.message);
+  revalidatePath('/admin/meals');
+  redirect('/admin/meals');
+}
+
+export async function createManualMeal(formData: FormData) {
+  const beneficiaryId = formData.get('beneficiary_id') as string;
+  const date          = formData.get('date') as string;
+  const type          = formData.get('type') as string;
+  const menuId        = formData.get('menu_id') as string || null;
+
+  if (!beneficiaryId || !date || !type) throw new Error('נא למלא את כל השדות');
+
+  const admin = adminClient();
+  const { error } = await admin.from('meals').insert({
+    beneficiary_id: beneficiaryId,
+    date,
+    type,
+    menu_id: menuId,
+    status: 'open',
+  });
+  if (error) throw new Error('שגיאה ביצירת הארוחה: ' + error.message);
+  revalidatePath('/admin/meals');
+  redirect('/admin/meals');
+}

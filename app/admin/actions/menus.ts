@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 function createAdminClient() {
@@ -60,4 +61,43 @@ export async function deleteMenu(menuId: string) {
   }
 
   revalidatePath('/admin/menus');
+}
+
+export async function reorderMenuItems(menuId: string, items: string[]) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('menus')
+    .update({ items })
+    .eq('id', menuId);
+
+  if (error) throw new Error('שגיאה בעדכון סדר המנות: ' + error.message);
+  revalidatePath('/admin/menus');
+  redirect('/admin/menus');
+}
+
+export async function addMenuItem(menuId: string, currentItems: string[], newItem: string) {
+  if (!newItem.trim()) return;
+  const updated = [...currentItems, newItem.trim()];
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('menus')
+    .update({ items: updated })
+    .eq('id', menuId);
+
+  if (error) throw new Error('שגיאה בהוספת המנה: ' + error.message);
+  revalidatePath('/admin/menus');
+  redirect('/admin/menus');
+}
+
+export async function removeMenuItem(menuId: string, currentItems: string[], index: number) {
+  const updated = currentItems.filter((_, i) => i !== index);
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('menus')
+    .update({ items: updated })
+    .eq('id', menuId);
+
+  if (error) throw new Error('שגיאה במחיקת המנה: ' + error.message);
+  revalidatePath('/admin/menus');
+  redirect('/admin/menus');
 }
