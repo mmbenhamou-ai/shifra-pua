@@ -1,0 +1,99 @@
+# Cursor Rules — Meal Management App
+
+## Project Context
+This is a Hebrew-only (RTL) web application for managing meal delivery to women after childbirth. 
+It coordinates cooks (volunteers who prepare meals) and drivers (volunteers who deliver).
+Built with Next.js 14 + Supabase + Tailwind CSS, deployed on Vercel.
+
+## Critical Rules
+
+### Language & Direction
+- ALL user-facing text must be in Hebrew
+- ALL layouts must be RTL (dir="rtl")
+- Use Tailwind RTL utilities (rtl:, ltr:) when needed
+- HTML lang="he" on all pages
+- Font: system Hebrew fonts or Google Fonts with Hebrew support (e.g., Heebo, Rubik)
+
+### Tech Stack — DO NOT deviate
+- Next.js 14 with App Router (NOT Pages Router)
+- Tailwind CSS for styling (NO other CSS frameworks)
+- Supabase for auth, database, and realtime
+- TypeScript for all files
+- Supabase Phone Auth (OTP) for authentication — NOT email/password
+
+### Code Style
+- Use TypeScript strict mode
+- Use server components by default, client components only when needed ('use client')
+- Use Supabase SSR helpers for server-side auth
+- All database calls through Supabase client
+- Use Zod for form validation
+- Descriptive variable names in English, comments in Hebrew when clarifying business logic
+
+### File Structure
+```
+/app
+  /layout.tsx          — Root layout (RTL, Hebrew font)
+  /page.tsx            — Landing / login
+  /(auth)
+    /login/page.tsx    — Phone OTP login
+    /register/page.tsx — Registration with role selection
+  /(dashboard)
+    /admin/            — Admin pages
+    /beneficiary/      — Beneficiary pages  
+    /cook/             — Cook pages
+    /driver/           — Driver pages
+  /api/                — API routes (webhooks for n8n)
+/components
+  /ui/                 — Reusable UI components
+  /forms/              — Form components
+  /calendar/           — Calendar/schedule components
+/lib
+  /supabase.ts         — Supabase client config
+  /types.ts            — TypeScript types
+  /utils.ts            — Utility functions
+  /constants.ts        — App constants (times, defaults)
+```
+
+### Database
+- Always use Supabase RLS (Row Level Security) policies
+- Never expose admin routes to non-admin users
+- Validate role on every protected page/API route
+
+### UI/UX Principles
+- Mobile-first design (min-width responsive, not max-width)
+- Large touch targets (min 44px)
+- Clear Hebrew text, no jargon
+- Warm, friendly colors
+- Maximum 2-3 taps to complete any action
+- Loading states on all async operations
+- Toast notifications for confirmations
+- Empty states with clear call-to-action
+
+### Security
+- Supabase RLS on all tables
+- Role-based access control middleware
+- Phone number validation (Israeli format: 05X-XXXXXXX)
+- Rate limiting on OTP requests
+- No sensitive data in client-side code
+
+### n8n Integration
+- Expose webhook endpoints at /api/webhooks/
+- Send structured JSON payloads
+- Include: recipient_phone, message_type, message_data
+- n8n handles WhatsApp/SMS delivery logic
+
+### When Building New Features
+1. Always read PROJECT.md first
+2. Create the database migration/table first
+3. Add RLS policies
+4. Build the API/server logic
+5. Build the UI last
+6. Test with Hebrew text (not lorem ipsum)
+
+### Common Mistakes to Avoid
+- Do NOT use left/right in CSS — use start/end for RTL compatibility
+- Do NOT hardcode dates — use date-fns with Hebrew locale
+- Do NOT skip loading states
+- Do NOT create pages without role protection
+- Do NOT use alert() — use toast components
+- Do NOT store phone numbers without normalizing (remove dashes, spaces)
