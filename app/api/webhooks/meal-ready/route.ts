@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
+import { createAdminClient } from '@/lib/supabase-admin';
 import { checkWebhookAuth } from '../_auth';
 
 function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 // n8n polling : repas marqués "מוכן לאיסוף" (status=ready)

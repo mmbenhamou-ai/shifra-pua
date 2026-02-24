@@ -143,7 +143,7 @@ export default async function AdminDashboardPage() {
           </ul>
           <div className="px-4 pb-3">
             <a
-              href="/admin/registrations"
+              href="/admin/announcements"
               className="block min-h-[44px] w-full rounded-xl bg-red-500 pt-2.5 text-center text-sm font-bold text-white transition active:opacity-80"
             >
               שלחי הודעה למתנדבות →

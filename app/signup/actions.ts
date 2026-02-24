@@ -1,18 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
-
-// Client admin qui bypasse le RLS — utilisé uniquement après vérification de session
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Supabase service role configuration missing');
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function registerUser(formData: FormData) {
   // Vérifie la session avec le client normal (anon)

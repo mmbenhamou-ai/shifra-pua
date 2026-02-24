@@ -1,11 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase-admin';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { redirect } from 'next/navigation';
 
 function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 function weekLabel(offset: number): string {
@@ -15,6 +13,11 @@ function weekLabel(offset: number): string {
 }
 
 export default async function StatsPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) redirect('/login');
+  const { data: me } = await supabase.from('users').select('role').eq('id', session.user.id).maybeSingle();
+  if (me?.role !== 'admin') redirect('/');
   const admin = adminClient();
   const now   = new Date();
 

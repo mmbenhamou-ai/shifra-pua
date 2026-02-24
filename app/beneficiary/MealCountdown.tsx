@@ -5,13 +5,13 @@ import { useMemo } from 'react';
 export default function MealCountdown({ endDate }: { endDate: string | null }) {
   const info = useMemo(() => {
     if (!endDate) return null;
-    const end  = new Date(endDate);
-    const now  = new Date();
-    // Normalize to midnight
+    // Normalize both to midnight to count whole calendar days
+    const end = new Date(endDate);
     end.setHours(0, 0, 0, 0);
+    const now = new Date();
     now.setHours(0, 0, 0, 0);
     const diffMs   = end.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     return diffDays;
   }, [endDate]);
 

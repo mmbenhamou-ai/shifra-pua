@@ -1,13 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 async function sendAnnouncement(formData: FormData) {

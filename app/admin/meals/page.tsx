@@ -1,13 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase-admin';
 import MealStatusSelect from './MealStatusSelect';
 import AssignSelect from './AssignSelect';
+import DeleteMealButton from './DeleteMealButton';
 
 function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createAdminClient();
 }
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
@@ -154,7 +151,10 @@ export default async function MealsAdminPage({
               <li key={meal.id as string}
                   className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-[#FBE4F0] px-4 py-2.5">
-                  <MealStatusSelect mealId={meal.id as string} current={meal.status as string} />
+                  <div className="flex items-center gap-1.5">
+                    <MealStatusSelect mealId={meal.id as string} current={meal.status as string} />
+                    <DeleteMealButton mealId={meal.id as string} />
+                  </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-zinc-900">
                       {TYPE_LABELS[meal.type as string] ?? meal.type}

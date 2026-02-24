@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 
 interface Notif {
@@ -8,39 +8,43 @@ interface Notif {
   message: string;
   created_at: string;
   read: boolean;
+  type?: string;
 }
 
 const TYPE_ICONS: Record<string, string> = {
-  meal_taken:      '🍲',
-  meal_ready:      '✅',
-  meal_delivered:  '🚗',
-  meal_confirmed:  '👶',
-  new_registration:'📝',
-  registration_approved: '✔️',
+  meal_taken:           '🍲',
+  meal_ready:           '✅',
+  meal_delivered:       '🚗',
+  meal_confirmed:       '👶',
+  new_registration:     '📝',
+  registration_approved:'✔️',
 };
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
-  const mins  = Math.floor(diff / 60000);
-  if (mins < 1)   return 'עכשיו';
-  if (mins < 60)  return `לפני ${mins} דק׳`;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)  return 'עכשיו';
+  if (mins < 60) return `לפני ${mins} דק׳`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)   return `לפני ${hrs} שע׳`;
+  if (hrs < 24)  return `לפני ${hrs} שע׳`;
   return `לפני ${Math.floor(hrs / 24)} ימים`;
 }
 
 export default function NotificationBell({ userId }: { userId: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]     = useState(false);
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef            = useRef<HTMLDivElement>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Stable client — never recreated
+  const supabase = useRef(
+    createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    ),
+  ).current;
 
-  async function load() {
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from('notifications_log')
       .select('id, message, created_at, read, type')
@@ -51,9 +55,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
       setNotifs(data as Notif[]);
       setUnread((data as Notif[]).filter((n) => !n.read).length);
     }
-  }
+  }, [supabase, userId]);
 
-  async function markAllRead() {
+  const markAllRead = useCallback(async () => {
     await supabase
       .from('notifications_log')
       .update({ read: true })
@@ -61,8 +65,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
       .eq('read', false);
     setUnread(0);
     setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
+  }, [supabase, userId]);
 
+  // Initial load + realtime
   useEffect(() => {
     load();
     const channel = supabase
@@ -77,21 +82,32 @@ export default function NotificationBell({ userId }: { userId: string }) {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [userId]);
+  }, [userId, supabase, load]);
 
   // Close on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (next) {
+      load();
+      markAllRead();
+    }
+  }
+
   return (
     <div className="relative" ref={panelRef}>
       <button
-        onClick={() => { setOpen((o) => !o); if (!open) { load(); markAllRead(); } }}
+        onClick={handleToggle}
         className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white transition active:scale-95"
         aria-label="התראות"
       >
@@ -104,22 +120,26 @@ export default function NotificationBell({ userId }: { userId: string }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-11 z-50 w-72 overflow-hidden rounded-2xl bg-white shadow-2xl border border-[#F7D4E2]">
+        <div className="absolute left-0 top-11 z-50 w-72 overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-[#FBE4F0] px-4 py-2.5">
-            <button onClick={markAllRead} className="text-[11px] text-[#811453] underline">סמן הכל כנקרא</button>
+            <button onClick={markAllRead} className="text-[11px] text-[#811453] underline">
+              סמן הכל כנקרא
+            </button>
             <p className="text-sm font-bold" style={{ color: '#811453' }}>התראות</p>
           </div>
-          <ul className="max-h-80 overflow-y-auto divide-y divide-[#FBE4F0]">
+          <ul className="max-h-80 divide-y divide-[#FBE4F0] overflow-y-auto">
             {notifs.length === 0 ? (
               <li className="px-4 py-6 text-center text-sm text-zinc-400">אין התראות</li>
             ) : notifs.map((n) => {
-              const icon = TYPE_ICONS[(n as unknown as { type?: string }).type ?? ''] ?? '📢';
+              const icon = TYPE_ICONS[n.type ?? ''] ?? '📢';
               return (
-                <li key={n.id}
-                    className={`flex items-start gap-2 px-4 py-2.5 text-right transition ${n.read ? 'opacity-60' : 'bg-[#FFF7FB]'}`}>
+                <li
+                  key={n.id}
+                  className={`flex items-start gap-2 px-4 py-2.5 text-right transition ${n.read ? 'opacity-60' : 'bg-[#FFF7FB]'}`}
+                >
                   <span className="mt-0.5 text-base">{icon}</span>
                   <div className="flex-1">
-                    <p className="text-xs text-zinc-800 leading-snug">{n.message}</p>
+                    <p className="text-xs leading-snug text-zinc-800">{n.message}</p>
                     <p className="mt-0.5 text-[10px] text-zinc-400">{timeAgo(n.created_at)}</p>
                   </div>
                 </li>
