@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 const PROTECTED = ['/admin', '/beneficiary', '/cook', '/driver', '/profile'];
-const PUBLIC    = ['/login', '/signup', '/test-login', '/api/dev-login'];
+const PUBLIC    = ['/login', '/signup', '/test-login', '/api/dev-login', '/demo'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

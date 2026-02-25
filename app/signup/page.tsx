@@ -6,6 +6,7 @@ import { registerUser } from './actions';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Role = 'beneficiary' | 'cook' | 'driver';
+type MainCategory = 'beneficiary' | 'volunteer' | null;
 
 interface BeneficiaryData {
   // Step 2 — infos perso
@@ -39,12 +40,6 @@ const EMPTY: BeneficiaryData = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const ROLES = [
-  { key: 'beneficiary' as Role, label: 'יולדת',  desc: 'אני זקוקה לארוחות לאחר הלידה',  emoji: '👶' },
-  { key: 'cook'        as Role, label: 'מבשלת',  desc: 'אני רוצה לבשל ארוחות למשפחות',  emoji: '🍲' },
-  { key: 'driver'      as Role, label: 'מחלקת',  desc: 'אני רוצה לחלק ארוחות',           emoji: '🚗' },
-];
 
 const KASHRUT_OPTIONS = ['רגיל', 'חלק', 'מהדרין', 'בד"ץ'];
 
@@ -132,8 +127,15 @@ function NavButtons({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function SignupPage() {
-  const [role,    setRole]    = useState<Role | null>(null);
-  const [step,    setStep]    = useState(1);           // 1 = choix rôle
+  const [role,      setRole]      = useState<Role | null>(null);
+  const [category,  setCategory]  = useState<MainCategory>(null);
+  // multi-select bénévole : cook + driver possibles simultanément
+  const [wantCook,   setWantCook]   = useState(false);
+  const [wantDriver, setWantDriver] = useState(false);
+  const [notifCook,  setNotifCook]  = useState(true);
+  const [notifDrv,   setNotifDrv]   = useState(true);
+
+  const [step,    setStep]    = useState(1);
   const [data,    setData]    = useState<BeneficiaryData>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [pending, setPending] = useState(false);
@@ -145,6 +147,10 @@ export default function SignupPage() {
   const [cvAddr,   setCvAddr]   = useState('');
   const [cvNeigh,  setCvNeigh]  = useState('');
   const [cvHasCar, setCvHasCar] = useState('false');
+
+  // Rôle effectif déterminé par les cases multi-select
+  const effectiveRole: Role = wantCook ? 'cook' : 'driver';
+  const alsoDriver = wantCook && wantDriver;
 
   const set = (k: keyof BeneficiaryData, v: string | boolean) =>
     setData((p) => ({ ...p, [k]: v }));
@@ -219,6 +225,11 @@ export default function SignupPage() {
     setPending(true);
     try {
       const fd = new FormData(e.currentTarget);
+      fd.set('role', effectiveRole);
+      fd.append('also_driver',    alsoDriver    ? 'true' : 'false');
+      fd.append('notif_cooking',  notifCook     ? 'true' : 'false');
+      fd.append('notif_delivery', notifDrv      ? 'true' : 'false');
+      if (alsoDriver) fd.set('has_car', 'true');
       await registerUser(fd);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'שגיאה בלתי צפויה');
@@ -240,33 +251,94 @@ export default function SignupPage() {
 
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 space-y-6">
 
-        {/* ── STEP 1 — choix du rôle ── */}
+        {/* ── STEP 1 — יולדת vs מתנדבת ── */}
         {step === 1 && (
           <div className="space-y-5">
             <div className="space-y-1 text-right">
-              <h2 className="text-xl font-bold" style={{ color: '#811453' }}>מי את?</h2>
-              <p className="text-sm text-zinc-500">בחרי את תפקידך במערכת</p>
+              <h2 className="text-xl font-bold" style={{ color: '#811453' }}>ברוכה הבאה! 💛</h2>
+              <p className="text-sm text-zinc-500">ספרי לנו קצת עלייך</p>
             </div>
-            <div className="flex flex-col gap-3">
-              {ROLES.map((r) => (
-                <button key={r.key} type="button" onClick={() => setRole(r.key)}
-                  className="flex items-center justify-between rounded-2xl border-2 p-4 text-right transition active:scale-[0.99]"
-                  style={{
-                    borderColor:     role === r.key ? '#811453' : '#F7D4E2',
-                    backgroundColor: role === r.key ? '#FFF7FB' : '#FFFFFF',
-                  }}>
-                  <span className="text-2xl">{r.emoji}</span>
-                  <div className="flex flex-col items-end gap-0.5">
-                    <span className="text-base font-semibold text-zinc-900">{r.label}</span>
-                    <span className="text-xs text-zinc-500">{r.desc}</span>
-                  </div>
-                </button>
-              ))}
+            <div className="flex flex-col gap-4">
+              {/* יולדת */}
+              <button type="button"
+                onClick={() => { setCategory('beneficiary'); setRole('beneficiary'); }}
+                className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
+                style={{
+                  borderColor:     category === 'beneficiary' ? '#811453' : '#F7D4E2',
+                  backgroundColor: category === 'beneficiary' ? '#FFF7FB' : '#FFFFFF',
+                  boxShadow: category === 'beneficiary' ? '0 0 0 2px #811453' : 'none',
+                }}>
+                <span className="text-3xl">👶</span>
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-lg font-bold text-zinc-900">יולדת</span>
+                  <span className="text-sm text-zinc-500">אני זקוקה לארוחות לאחר הלידה</span>
+                </div>
+              </button>
+
+              {/* מתנדבת */}
+              <button type="button"
+                onClick={() => { setCategory('volunteer'); setRole(null); }}
+                className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
+                style={{
+                  borderColor:     category === 'volunteer' ? '#811453' : '#F7D4E2',
+                  backgroundColor: category === 'volunteer' ? '#FFF7FB' : '#FFFFFF',
+                  boxShadow: category === 'volunteer' ? '0 0 0 2px #811453' : 'none',
+                }}>
+                <span className="text-3xl">💛</span>
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className="text-lg font-bold text-zinc-900">מתנדבת</span>
+                  <span className="text-sm text-zinc-500">אני רוצה לעזור למשפחות</span>
+                </div>
+              </button>
             </div>
+
+            {/* Step 1b — multi-select bénévole */}
+            {category === 'volunteer' && (
+              <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 space-y-3">
+                <p className="text-sm font-bold text-right" style={{ color: '#4A0731' }}>
+                  במה תרצי לעזור? (ניתן לבחור יותר מאחת)
+                </p>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { id: 'cook',   label: 'מבשלת',  emoji: '🍲', desc: 'לבשל ארוחות בבית',     val: wantCook,   set: setWantCook },
+                    { id: 'driver', label: 'מחלקת',  emoji: '🚗', desc: 'לחלק ארוחות לבתים',   val: wantDriver, set: setWantDriver },
+                  ].map((opt) => (
+                    <button key={opt.id} type="button"
+                      onClick={() => opt.set(!opt.val)}
+                      className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
+                      style={{
+                        borderColor:     opt.val ? '#811453' : '#F7D4E2',
+                        backgroundColor: opt.val ? '#FFF7FB' : '#FAFAFA',
+                      }}>
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
+                             style={{ borderColor: opt.val ? '#811453' : '#D1D5DB', backgroundColor: opt.val ? '#811453' : '#fff' }}>
+                          {opt.val && <span className="text-white text-xs font-bold">✓</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-right">
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-900">{opt.label}</span>
+                          <p className="text-xs text-zinc-500">{opt.desc}</p>
+                        </div>
+                        <span className="text-xl">{opt.emoji}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <NavButtons
               nextLabel="המשך ←"
-              nextDisabled={!role}
-              onNext={() => setStep(role === 'beneficiary' ? 2 : 10)}
+              nextDisabled={
+                !category ||
+                (category === 'volunteer' && !wantCook && !wantDriver)
+              }
+              onNext={() => {
+                if (category === 'beneficiary') setStep(2);
+                else setStep(10);
+              }}
             />
           </div>
         )}
@@ -519,13 +591,20 @@ export default function SignupPage() {
             FORMULAIRE מבשלת / מחלקת — step 10
         ══════════════════════════════════════════════════════════════════════ */}
 
-        {role !== 'beneficiary' && step === 10 && (
+        {category === 'volunteer' && step === 10 && (
           <form onSubmit={submitVolunteer} noValidate className="space-y-5">
-            <input type="hidden" name="role" value={role ?? ''} />
+            <input type="hidden" name="role" value={effectiveRole} />
 
             <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>
-              פרטים אישיים — {role === 'cook' ? 'מבשלת' : 'מחלקת'}
+              פרטים אישיים —{' '}
+              {alsoDriver ? 'מבשלת ומחלקת' : wantCook ? 'מבשלת' : 'מחלקת'}
             </h2>
+
+            {/* תגיות תפקיד */}
+            <div className="flex gap-2 justify-end flex-wrap">
+              {wantCook   && <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>🍲 מבשלת</span>}
+              {wantDriver && <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: '#EDE9FE', color: '#5B21B6' }}>🚗 מחלקת</span>}
+            </div>
 
             <Field label="שם מלא *">
               <input name="name" required value={cvName}
@@ -567,7 +646,8 @@ export default function SignupPage() {
                 placeholder="כתובת מגורים" className={inputCls(false)} />
             </Field>
 
-            {role === 'driver' && (
+            {/* רכב — uniquement si mחלקת sans être aussi cuisinière */}
+            {wantDriver && !wantCook && (
               <div className="flex flex-col items-end gap-2 text-right">
                 <label className="text-sm font-medium text-zinc-800">האם יש לך רכב?</label>
                 <div className="flex gap-3">
@@ -584,6 +664,43 @@ export default function SignupPage() {
               </div>
             )}
 
+            {/* העדפות התראות */}
+            <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 space-y-3">
+              <p className="text-sm font-bold text-right" style={{ color: '#4A0731' }}>
+                על מה תרצי לקבל התראות?
+              </p>
+              <div className="flex flex-col gap-2">
+                {wantCook && (
+                  <button type="button" onClick={() => setNotifCook(!notifCook)}
+                    className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
+                    style={{ borderColor: notifCook ? '#811453' : '#F7D4E2', backgroundColor: notifCook ? '#FFF7FB' : '#FAFAFA' }}>
+                    <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
+                         style={{ borderColor: notifCook ? '#811453' : '#D1D5DB', backgroundColor: notifCook ? '#811453' : '#fff' }}>
+                      {notifCook && <span className="text-white text-xs font-bold">✓</span>}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-zinc-900">🍲 ארוחות פנויות לבישול</span>
+                      <p className="text-xs text-zinc-500">התראה כשיש ארוחה שצריכה מבשלת</p>
+                    </div>
+                  </button>
+                )}
+                {wantDriver && (
+                  <button type="button" onClick={() => setNotifDrv(!notifDrv)}
+                    className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
+                    style={{ borderColor: notifDrv ? '#811453' : '#F7D4E2', backgroundColor: notifDrv ? '#FFF7FB' : '#FAFAFA' }}>
+                    <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
+                         style={{ borderColor: notifDrv ? '#811453' : '#D1D5DB', backgroundColor: notifDrv ? '#811453' : '#fff' }}>
+                      {notifDrv && <span className="text-white text-xs font-bold">✓</span>}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-zinc-900">🚗 משלוחים פנויים לחלוקה</span>
+                      <p className="text-xs text-zinc-500">התראה כשיש משלוח שצריך מחלקת</p>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {error && (
               <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 text-right">
                 {error}
@@ -591,7 +708,7 @@ export default function SignupPage() {
             )}
 
             <NavButtons
-              onBack={() => { setStep(1); setError(null); }}
+              onBack={() => { setStep(1); setError(null); setCategory('volunteer'); }}
               nextLabel="שליחת הבקשה"
               nextDisabled={cvName.trim().length < 2 || !validatePhone(cvPhone)}
               pending={pending}

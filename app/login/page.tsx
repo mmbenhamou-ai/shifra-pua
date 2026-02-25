@@ -291,6 +291,32 @@ export default function LoginPage() {
             <a href="/test-login" className="underline">כניסת פיתוח</a>
           </p>
         )}
+
+        {/* Demo links */}
+        {process.env.NEXT_PUBLIC_DEMO_TOKEN && (
+          <div className="mt-6 border-t border-[#F7D4E2] pt-4">
+            <p className="mb-3 text-center text-xs font-medium" style={{ color: '#9B6A8A' }}>
+              — גישת דמו לבדיקות —
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { role: 'beneficiary', label: '👶 יולדת' },
+                { role: 'cook',        label: '🍲 מבשלת' },
+                { role: 'driver',      label: '🚗 מחלקת' },
+                { role: 'cook-driver', label: '💛 מתנדבת' },
+                { role: 'admin',       label: '⚙️ אדמין'  },
+              ].map((d) => (
+                <a
+                  key={d.role}
+                  href={`/demo/${d.role}?token=${process.env.NEXT_PUBLIC_DEMO_TOKEN}`}
+                  className="rounded-xl border border-[#F7D4E2] bg-white py-2 text-center text-xs font-medium text-zinc-700 transition hover:border-[#811453] hover:text-[#811453] active:scale-95"
+                >
+                  {d.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

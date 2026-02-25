@@ -16,10 +16,13 @@ export async function registerUser(formData: FormData) {
 
   if (!role || !name || !phone) throw new Error('נא למלא את כל השדות החובה');
 
-  const address      = (formData.get('address')      as string | null)?.trim() ?? null;
-  const neighborhood = (formData.get('neighborhood') as string | null)?.trim() ?? null;
-  const email        = (formData.get('email')        as string | null)?.trim() || null;
-  const has_car      = formData.get('has_car') === 'true';
+  const address       = (formData.get('address')      as string | null)?.trim() ?? null;
+  const neighborhood  = (formData.get('neighborhood') as string | null)?.trim() ?? null;
+  const email         = (formData.get('email')        as string | null)?.trim() || null;
+  const has_car       = formData.get('has_car') === 'true';
+  const also_driver   = formData.get('also_driver')   === 'true';
+  const notif_cooking = formData.get('notif_cooking')  !== 'false';
+  const notif_delivery= formData.get('notif_delivery') !== 'false';
 
   const admin = createAdminClient();
 
@@ -31,7 +34,10 @@ export async function registerUser(formData: FormData) {
     address,
     neighborhood,
     email,
-    has_car: role === 'driver' ? has_car : null,
+    has_car:        role === 'driver' || also_driver ? has_car || also_driver : null,
+    also_driver:    role === 'cook' ? also_driver : false,
+    notif_cooking,
+    notif_delivery,
     approved: false,
   });
 
