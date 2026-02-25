@@ -89,22 +89,28 @@ export async function POST(
 
     const existing = existingList?.users?.find((u) => u.email === demo.email);
 
-    if (!existing) {
-      const { error: createErr } = await admin.auth.admin.createUser({
+    let authUserId: string;
+
+    if (existing) {
+      authUserId = existing.id;
+    } else {
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email:         demo.email,
         password:      demo.password,
         email_confirm: true,
       });
-      if (createErr) {
+      if (createErr || !created?.user) {
         return NextResponse.json(
-          { error: 'Erreur création user demo', details: createErr.message },
+          { error: 'Erreur création user demo', details: createErr?.message },
           { status: 500 },
         );
       }
+      authUserId = created.user.id;
     }
 
-    // Upsert dans la table applicative users
+    // Upsert dans la table applicative users, basé sur l'id Auth (PK)
     const { error: upsertErr } = await admin.from('users').upsert({
+      id:          authUserId,
       email:       demo.email,
       name:        demo.name,
       role:        demo.role,
@@ -113,8 +119,6 @@ export async function POST(
       also_driver: demo.also_driver,
       has_car:     demo.also_driver || demo.role === 'driver',
       approved:    true,
-    }, {
-      onConflict: 'email',
     });
 
     if (upsertErr) {
@@ -131,19 +135,16 @@ export async function POST(
       end.setDate(end.getDate() + 14);
       const endStr = end.toISOString().split('T')[0];
 
-      const { error: benErr } = await admin.from('beneficiaries').upsert(
-        {
-          // On reliera via email côté SQL si nécessaire, ici c'est simplement pour s'assurer
-          // qu'il existe au moins une ligne de démo.
-          start_date:         today,
-          end_date:           endStr,
-          num_breakfast_days: 14,
-          num_shabbat_weeks:  2,
-          active:             true,
-          is_vegetarian:      false,
-          spicy_level:        0,
-        },
-      );
+      const { error: benErr } = await admin.from('beneficiaries').upsert({
+        user_id:            authUserId,
+        start_date:         today,
+        end_date:           endStr,
+        num_breakfast_days: 14,
+        num_shabbat_weeks:  2,
+        active:             true,
+        is_vegetarian:      false,
+        spicy_level:        0,
+      });
       if (benErr) {
         // On log l'erreur mais on ne bloque pas la connexion demo
         console.error('Erreur upsert beneficiary demo:', benErr.message);
