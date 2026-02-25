@@ -16,31 +16,39 @@ const FILTER_TABS = [
   { key: 'driver',      label: 'מחלקות' },
 ];
 
+const PAGE_SIZE = 50;
+
 export default async function RegistrationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; q?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string; page?: string }>;
 }) {
-  const { filter = 'all', q = '' } = await searchParams;
+  const { filter = 'all', q = '', page: pageStr = '1' } = await searchParams;
+  const page = Math.max(1, parseInt(pageStr, 10) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .from('users')
-    .select('id, name, role, phone, approved, created_at, address, neighborhood')
-    .order('created_at', { ascending: false });
+    .select('id, name, role, phone, approved, created_at, address, neighborhood', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (filter === 'pending')        query = query.eq('approved', false);
   else if (filter !== 'all')       query = query.eq('role', filter);
   if (q.trim())                    query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
 
-  const { data: users, error } = await query;
+  const { data: users, error, count } = await query;
   const list = users ?? [];
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
     <div className="space-y-5 pb-2" dir="rtl">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>הרשמות</h1>
-        <p className="text-sm" style={{ color: '#7C365F' }}>{list.length} נמצאו</p>
+        <p className="text-sm" style={{ color: '#7C365F' }}>{count ?? 0} נמצאו</p>
       </header>
 
       {/* Search */}
@@ -138,6 +146,29 @@ export default async function RegistrationsPage({
           </ul>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-1">
+          {page > 1 && (
+            <a href={`/admin/registrations?filter=${filter}${q ? `&q=${q}` : ''}&page=${page - 1}`}
+               className="rounded-full px-4 py-2 text-sm font-medium transition"
+               style={{ backgroundColor: '#FBE4F0', color: '#811453' }}>
+              ← הקודם
+            </a>
+          )}
+          <span className="text-sm" style={{ color: '#7C365F' }}>
+            עמוד {page} מתוך {totalPages}
+          </span>
+          {page < totalPages && (
+            <a href={`/admin/registrations?filter=${filter}${q ? `&q=${q}` : ''}&page=${page + 1}`}
+               className="rounded-full px-4 py-2 text-sm font-medium transition"
+               style={{ backgroundColor: '#FBE4F0', color: '#811453' }}>
+              הבא →
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }

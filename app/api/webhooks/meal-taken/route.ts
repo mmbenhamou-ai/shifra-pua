@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       id, date, type, status,
       cook:cook_id ( id, name, phone ),
       beneficiary:beneficiary_id (
+        is_vegetarian, spicy_level, cooking_notes,
         user:user_id ( name, phone, address )
       )
     `)

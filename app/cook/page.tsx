@@ -4,6 +4,35 @@ import { TakeMealButton, MarkReadyButton } from './CookActions';
 import ReleaseButton from './ReleaseButton';
 import Link from 'next/link';
 
+const SPICY_LABELS = ['לא חריף 😌', 'קצת חריף 🌶', 'חריף 🔥'];
+
+type BenPrefs = { is_vegetarian?: boolean; spicy_level?: number; cooking_notes?: string } | null;
+
+function PrefsStrip({ ben }: { ben: BenPrefs }) {
+  if (!ben) return null;
+  const tags: string[] = [];
+  if (ben.is_vegetarian) tags.push('🥗 צמחוני');
+  if (typeof ben.spicy_level === 'number') tags.push(SPICY_LABELS[ben.spicy_level] ?? '');
+  if (!tags.length && !ben.cooking_notes) return null;
+  return (
+    <div className="space-y-1.5">
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 justify-end">
+          {tags.map((t) => (
+            <span key={t} className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>{t}</span>
+          ))}
+        </div>
+      )}
+      {ben.cooking_notes && (
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800 text-right">
+          ⚠️ {ben.cooking_notes}
+        </p>
+      )}
+    </div>
+  );
+}
+
 const TYPE_LABELS: Record<string, string> = {
   breakfast:        'ארוחת בוקר',
   shabbat_friday:   'שבת ליל',
@@ -27,14 +56,14 @@ export default async function CookDashboard() {
   const [{ data: myMeals }, { data: openMeals }, { data: profile }, { count: totalCooked }] = await Promise.all([
     supabase
       .from('meals')
-      .select('id, date, type, status, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(user:user_id(name, address, neighborhood, notes))')
+      .select('id, date, type, status, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))')
       .eq('cook_id', userId)
       .in('status', ['cook_assigned', 'ready'])
       .order('date', { ascending: true }),
 
     supabase
       .from('meals')
-      .select('id, date, type, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(user:user_id(name, address, neighborhood, notes))')
+      .select('id, date, type, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))')
       .eq('status', 'open')
       .gte('date', today)
       .order('date', { ascending: true }),
@@ -61,11 +90,18 @@ export default async function CookDashboard() {
       {/* ── Header ── */}
       <header className="pt-1">
         <div className="flex items-center justify-between">
-          <Link href="/cook/history"
-                className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm"
-                style={{ color: '#811453' }}>
-            היסטוריה →
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/cook/history"
+                  className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm"
+                  style={{ color: '#811453' }}>
+              היסטוריה →
+            </Link>
+            <Link href="/cook/shabbat"
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm"
+                  style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
+              שבת 🕍
+            </Link>
+          </div>
           <div className="text-right">
             <h2 className="text-2xl font-extrabold" style={{ color: '#1A0A10' }}>
               שלום{firstName ? ` ${firstName}` : ''}! 🍲
@@ -101,7 +137,9 @@ export default async function CookDashboard() {
           </h3>
           <div className="space-y-3">
             {mine.map((meal) => {
-              const ben     = (meal.beneficiary as { user?: { name?: string; address?: string; neighborhood?: string; notes?: string } } | null)?.user;
+              const benRaw  = meal.beneficiary as { is_vegetarian?: boolean; spicy_level?: number; cooking_notes?: string; user?: { name?: string; address?: string; neighborhood?: string } } | null;
+              const ben     = benRaw?.user;
+              const benPrefs: BenPrefs = benRaw ? { is_vegetarian: benRaw.is_vegetarian, spicy_level: benRaw.spicy_level, cooking_notes: benRaw.cooking_notes } : null;
               const menu    = meal.menu as { name?: string; items?: string[] } | null;
               const isReady = meal.status === 'ready';
               const tc      = TYPE_COLORS[meal.type as string] ?? TYPE_COLORS.breakfast;
@@ -145,14 +183,11 @@ export default async function CookDashboard() {
                               📍 {ben.address}
                             </a>
                           )}
-                          {ben.notes && (
-                            <p className="mt-1 text-xs text-amber-700 bg-amber-50 rounded-lg px-2 py-1">
-                              ⚠️ {ben.notes}
-                            </p>
-                          )}
                         </div>
                       </div>
                     )}
+                    {/* Préférences alimentaires */}
+                    <PrefsStrip ben={benPrefs} />
 
                     {/* Menu */}
                     {menu?.items && menu.items.length > 0 && (
@@ -213,7 +248,9 @@ export default async function CookDashboard() {
         ) : (
           <div className="space-y-3">
             {open.map((meal) => {
-              const ben     = (meal.beneficiary as { user?: { name?: string; address?: string; neighborhood?: string; notes?: string } } | null)?.user;
+              const benRaw  = meal.beneficiary as { is_vegetarian?: boolean; spicy_level?: number; cooking_notes?: string; user?: { name?: string; address?: string; neighborhood?: string } } | null;
+              const ben     = benRaw?.user;
+              const benPrefs: BenPrefs = benRaw ? { is_vegetarian: benRaw.is_vegetarian, spicy_level: benRaw.spicy_level, cooking_notes: benRaw.cooking_notes } : null;
               const menu    = meal.menu as { name?: string; items?: string[] } | null;
               const tc      = TYPE_COLORS[meal.type as string] ?? TYPE_COLORS.breakfast;
               const nearby  = isSameNeighborhood(ben?.neighborhood);
@@ -260,12 +297,8 @@ export default async function CookDashboard() {
                       </div>
                     )}
 
-                    {/* Notes/Allergies */}
-                    {ben?.notes && (
-                      <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                        ⚠️ הערות: {ben.notes}
-                      </p>
-                    )}
+                    {/* Préférences alimentaires */}
+                    <PrefsStrip ben={benPrefs} />
 
                     {/* Menu preview */}
                     {menu?.name && (

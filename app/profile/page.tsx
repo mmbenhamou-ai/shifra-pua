@@ -9,7 +9,7 @@ export default async function ProfilePage() {
 
   const { data: user } = await supabase
     .from('users')
-    .select('name, phone, address, neighborhood, role')
+    .select('name, phone, address, neighborhood, role, email')
     .eq('id', session.user.id)
     .single();
 
@@ -46,6 +46,7 @@ export default async function ProfilePage() {
             phone:        user.phone as string,
             address:      user.address      as string | null,
             neighborhood: user.neighborhood as string | null,
+            email:        user.email        as string | null,
             role:         user.role  as string,
           }}
         />

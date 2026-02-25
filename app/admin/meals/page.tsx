@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import MealStatusSelect from './MealStatusSelect';
 import AssignSelect from './AssignSelect';
 import DeleteMealButton from './DeleteMealButton';
+import MealItemsEditor from './MealItemsEditor';
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
   open:            { label: 'פנויה',          bg: '#FEF3C7', color: '#92400E' },
@@ -45,7 +46,8 @@ export default async function MealsAdminPage({
       menu:menu_id(name),
       cook:cook_id(id, name),
       driver:driver_id(id, name),
-      beneficiary:beneficiary_id(user:user_id(name, address))
+      beneficiary:beneficiary_id(user:user_id(name, address)),
+      meal_items(id, item_name, item_type, cook_id, cook:cook_id(name))
     `)
     .order('date', { ascending: false })
     .limit(100);
@@ -142,6 +144,8 @@ export default async function MealsAdminPage({
             const driverObj = meal.driver as { id?: string; name?: string } | null;
             const ben    = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
             const menu   = (meal.menu as { name?: string } | null)?.name;
+            const mealItems = (meal.meal_items as { id: string; item_name: string; item_type: string; cook_id: string | null; cook?: { name?: string } | null }[]) ?? [];
+            const isShabbat = (meal.type as string).startsWith('shabbat');
 
             return (
               <li key={meal.id as string}
@@ -191,6 +195,11 @@ export default async function MealsAdminPage({
                     volunteers={driverList}
                   />
                 </div>
+
+                {/* פריטי שבת — uniquement pour les repas Shabbat */}
+                {isShabbat && (
+                  <MealItemsEditor mealId={meal.id as string} items={mealItems} />
+                )}
               </li>
             );
           })}

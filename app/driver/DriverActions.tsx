@@ -2,114 +2,115 @@
 
 import { useState, useTransition } from 'react';
 import { takeDelivery, markPickedUp, markDelivered } from '@/app/actions/meals';
+export { useMealRealtime, ConflictBanner } from '@/app/components/RealtimeMealList';
+
+function Spinner() {
+  return <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
+}
+
+function ConflictMsg({ msg }: { msg: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-right">
+      <span className="text-base">⚠️</span>
+      <p className="text-xs font-medium text-amber-800">{msg}</p>
+    </div>
+  );
+}
 
 export function TakeDeliveryButton({ mealId }: { mealId: string }) {
   const [isPending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]  = useState<string | null>(null);
+  const [taken,  setTaken] = useState(false);
+
+  if (taken) {
+    return (
+      <div className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-50 py-3">
+        <span className="text-sm font-semibold text-emerald-700">✓ לקחת על עצמך!</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <button
         type="button"
+        disabled={isPending}
         onClick={() => {
-          if (!window.confirm('לקחת משלוח זה על עצמך — האם את בטוחה?')) return;
           setError(null);
           start(async () => {
             try {
               await takeDelivery(mealId);
+              setTaken(true);
             } catch (err) {
               setError(err instanceof Error ? err.message : 'שגיאה בלקיחת המשלוח');
             }
           });
         }}
-        disabled={isPending}
-        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white shadow-lg transition active:scale-[0.97] disabled:opacity-50"
-        style={{ background: 'linear-gradient(135deg, #811453 0%, #a0185f 100%)', boxShadow: '0 4px 18px rgba(129,20,83,0.35)' }}
+        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg,#811453,#a0185f)', boxShadow: '0 4px 18px rgba(129,20,83,0.35)' }}
       >
-        {isPending ? (
-          <span className="flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            מחשב...
-          </span>
-        ) : (
-          <><span className="text-lg">🚗</span> לקחתי על עצמי</>
-        )}
+        {isPending ? <><Spinner /> מחשבת...</> : <><span className="text-lg">🚗</span> לקחתי על עצמי</>}
       </button>
-      {error && <p className="text-xs text-red-600 text-right">{error}</p>}
+      {error && <ConflictMsg msg={error} />}
     </div>
   );
 }
 
-export function PickedUpButton({ mealId }: { mealId: string }) {
+// נאסף + פתח Waze ליולדת
+export function PickedUpButton({ mealId, benAddress }: { mealId: string; benAddress?: string | null }) {
   const [isPending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]  = useState<string | null>(null);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <button
         type="button"
+        disabled={isPending}
         onClick={() => {
-          if (!window.confirm('לאשר שאספת את הארוחה מהמבשלת?')) return;
           setError(null);
           start(async () => {
             try {
               await markPickedUp(mealId);
-            } catch (err) {
-              setError(err instanceof Error ? err.message : 'שגיאה באישור האיסוף');
-            }
+              // Ouvre Waze vers la יולדת après confirmation
+              if (benAddress) {
+                const encoded = encodeURIComponent(benAddress);
+                window.open(`https://waze.com/ul?q=${encoded}&navigate=yes`, '_blank');
+              }
+            } catch (err) { setError(err instanceof Error ? err.message : 'שגיאה'); }
           });
         }}
-        disabled={isPending}
-        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white shadow-lg transition active:scale-[0.97] disabled:opacity-50"
-        style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
+        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg,#7C3AED,#9333EA)', boxShadow: '0 4px 18px rgba(124,58,237,0.35)' }}
       >
-        {isPending ? (
-          <span className="flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            שומרת...
-          </span>
-        ) : (
-          <><span className="text-lg">📦</span> נאסף — בדרך ליולדת</>
-        )}
+        {isPending ? <><Spinner /> שומרת...</> : <><span className="text-lg">📦</span> נאסף — אני בדרך ליולדת 🗺️</>}
       </button>
-      {error && <p className="text-xs text-red-600 text-right">{error}</p>}
+      {error && <ConflictMsg msg={error} />}
     </div>
   );
 }
 
 export function DeliveredButton({ mealId }: { mealId: string }) {
   const [isPending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]  = useState<string | null>(null);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <button
         type="button"
+        disabled={isPending}
         onClick={() => {
-          if (!window.confirm('לאשר שמסרת את הארוחה ליולדת?')) return;
           setError(null);
           start(async () => {
-            try {
-              await markDelivered(mealId);
-            } catch (err) {
-              setError(err instanceof Error ? err.message : 'שגיאה באישור המסירה');
-            }
+            try { await markDelivered(mealId); }
+            catch (err) { setError(err instanceof Error ? err.message : 'שגיאה'); }
           });
         }}
-        disabled={isPending}
-        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white shadow-lg transition active:scale-[0.97] disabled:opacity-50"
-        style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)', boxShadow: '0 4px 18px rgba(5,150,105,0.35)' }}
+        className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
+        style={{ background: 'linear-gradient(135deg,#059669,#10b981)', boxShadow: '0 4px 18px rgba(5,150,105,0.35)' }}
       >
-        {isPending ? (
-          <span className="flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-            שומרת...
-          </span>
-        ) : (
-          <><span className="text-lg">✅</span> נמסר בהצלחה!</>
-        )}
+        {isPending ? <><Spinner /> שומרת...</> : <><span className="text-lg">✅</span> נמסר בהצלחה!</>}
       </button>
-      {error && <p className="text-xs text-red-600 text-right">{error}</p>}
+      {error && <ConflictMsg msg={error} />}
     </div>
   );
 }

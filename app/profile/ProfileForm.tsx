@@ -8,6 +8,7 @@ interface User {
   phone: string;
   address: string | null;
   neighborhood: string | null;
+  email: string | null;
   role: string;
 }
 
@@ -110,6 +111,22 @@ export default function ProfileForm({ user }: { user: User }) {
             placeholder="שכונה"
             className={inputClass}
           />
+        </div>
+
+        {/* אימייל */}
+        <div className="space-y-1.5">
+          <label className="block text-sm font-semibold text-right" style={{ color: '#4A0731' }}>
+            אימייל <span className="font-normal text-zinc-400">(אופציונלי)</span>
+          </label>
+          <input
+            name="email"
+            type="email"
+            dir="ltr"
+            defaultValue={user.email ?? ''}
+            placeholder="example@gmail.com"
+            className={inputClass + ' text-left'}
+          />
+          <p className="text-xs text-zinc-400 text-right">לקבלת עדכונים במייל</p>
         </div>
 
         {/* הודעות */}

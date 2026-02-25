@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { confirmMealReceived } from '@/app/actions/meals';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -46,6 +47,7 @@ function dateLabel(dateStr: string): string {
 
 export default function MealCard({ meal, featured = false }: { meal: Meal; featured?: boolean }) {
   const [isPending, start] = useTransition();
+  const router = useRouter();
 
   const stepIdx   = PIPELINE.findIndex((p) => p.key === meal.status);
   const step      = PIPELINE[stepIdx] ?? PIPELINE[0];
@@ -134,11 +136,19 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
         {/* Confirm button */}
         {isDelivered && (
           <div className="bg-white px-5 pb-5">
+            {/* Badge pulsant pour attirer l'attention */}
+            <div className="mb-3 flex items-center justify-center gap-2">
+              <span className="inline-flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="text-xs font-semibold text-emerald-700">הארוחה הגיעה! אנא אשרי קבלה</span>
+            </div>
             <button
               type="button"
               onClick={() => {
                 if (!window.confirm('אישור קבלת הארוחה — האם הכל בסדר?')) return;
-                start(async () => { await confirmMealReceived(meal.id); });
+                start(async () => {
+                  await confirmMealReceived(meal.id);
+                  router.push(`/beneficiary/feedback?meal_id=${meal.id}`);
+                });
               }}
               disabled={isPending}
               className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white shadow-lg transition active:scale-[0.97] disabled:opacity-50"
@@ -202,7 +212,10 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
             type="button"
             onClick={() => {
               if (!window.confirm('אישור קבלת הארוחה — האם הכל בסדר?')) return;
-              start(async () => { await confirmMealReceived(meal.id); });
+              start(async () => {
+                await confirmMealReceived(meal.id);
+                router.push(`/beneficiary/feedback?meal_id=${meal.id}`);
+              });
             }}
             disabled={isPending}
             className="flex min-h-[44px] w-full items-center justify-center rounded-xl text-sm font-bold text-white transition active:scale-[0.97] disabled:opacity-50"

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
   LayoutDashboard, UserPlus, UtensilsCrossed, CalendarDays,
-  ClipboardList, BarChart3, Users, Settings, Megaphone,
+  ClipboardList, BarChart3, Users, Settings, Megaphone, Clock,
 } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import LogoutButton from '@/app/components/LogoutButton';
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: '/admin/stats',         label: 'סטטיסטיקה',Icon: BarChart3 },
   { href: '/admin/calendar',      label: 'לוח',      Icon: CalendarDays },
   { href: '/admin/announcements', label: 'הודעות',   Icon: Megaphone },
+  { href: '/admin/timeslots',     label: 'שעות',     Icon: Clock },
   { href: '/admin/settings',      label: 'הגדרות',   Icon: Settings },
 ];
 

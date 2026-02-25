@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   let query = admin
     .from('users')
-    .select('id, name, role, phone, address, approved, created_at')
+    .select('id, name, role, phone, email, address, approved, created_at')
     .order('created_at', { ascending: false })
     .limit(50);
 

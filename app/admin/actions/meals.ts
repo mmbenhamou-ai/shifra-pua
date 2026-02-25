@@ -39,6 +39,24 @@ export async function deleteMeal(mealId: string) {
   redirect('/admin/meals');
 }
 
+export async function addMealItem(mealId: string, itemName: string, itemType: string) {
+  const admin = createAdminClient();
+  const { error } = await admin.from('meal_items').insert({
+    meal_id:   mealId,
+    item_name: itemName,
+    item_type: itemType,
+  });
+  if (error) throw new Error('שגיאה בהוספת פריט: ' + error.message);
+  revalidatePath('/admin/meals');
+}
+
+export async function removeMealItem(itemId: string) {
+  const admin = createAdminClient();
+  const { error } = await admin.from('meal_items').delete().eq('id', itemId);
+  if (error) throw new Error('שגיאה במחיקת פריט: ' + error.message);
+  revalidatePath('/admin/meals');
+}
+
 export async function createManualMeal(formData: FormData) {
   const beneficiaryId = formData.get('beneficiary_id') as string;
   const date          = formData.get('date') as string;

@@ -143,17 +143,30 @@
 
 ### beneficiaries
 - id, user_id, birth_date, num_breakfast_days (default 14), num_shabbat_weeks (default 2), active, start_date, end_date
+- **Phase 6 :** num_adults, num_children, children_ages (int[]), is_vegetarian, spicy_level (0-2), cooking_notes
+- **Phase 6 :** preferred_time_slot_id (FK → time_slots), shabbat_friday, shabbat_saturday, shabbat_kashrut
 
 ### menus
 - id, name, type (breakfast/shabbat_friday/shabbat_saturday), items (text array), active, created_at
 
 ### meals
-- id, beneficiary_id, menu_id, date, type, status (open/cook_assigned/ready/driver_assigned/picked_up/delivered/confirmed)
+- id, beneficiary_id, menu_id, date, type, status (open/cook_assigned/cooking/ready/driver_assigned/picked_up/delivering/delivered/confirmed)
 - cook_id (nullable), driver_id (nullable)
 - pickup_time, delivery_time
+- **Phase 6 :** time_slot_id (FK → time_slots), conflict_at
+
+### time_slots *(Phase 6)*
+- id, label, meal_type (breakfast/shabbat_friday/shabbat_saturday), pickup_time, delivery_time, max_per_slot, active, created_at
+
+### meal_items *(Phase 6 — items Shabbat réservables individuellement)*
+- id, meal_id (FK → meals), item_name, item_type (protein/side/salad/soup/dessert/other)
+- cook_id (nullable FK → users), reserved_at, created_at
+
+### feedbacks *(Phase 6)*
+- id, meal_id, author_id, target_id (cuisinière ou livreuse), rating (1-5), message, sent_wa, created_at
 
 ### notifications_log
-- id, user_id, type, channel (whatsapp/sms), sent_at, status
+- id, user_id, message, type, read, channel (in_app/whatsapp/sms), created_at
 
 ## שעות ברירת מחדל
 

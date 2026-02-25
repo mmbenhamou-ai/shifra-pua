@@ -56,7 +56,7 @@ export default async function AdminDashboardPage() {
 
     supabase
       .from('users')
-      .select('id, name, role, phone, created_at')
+      .select('id, name, role, phone, email, created_at')
       .eq('approved', false)
       .order('created_at', { ascending: false }),
 
@@ -212,13 +212,18 @@ export default async function AdminDashboardPage() {
                     </div>
 
                     {u.phone && (
+                      <a href={`tel:${u.phone}`} className="text-xs underline" style={{ color: '#7C365F' }}>
+                        📞 {u.phone}
+                      </a>
+                    )}
+                    {(u as { email?: string | null }).email && (
                       <span className="text-xs" style={{ color: '#7C365F' }}>
-                        {u.phone}
+                        ✉️ {(u as { email?: string | null }).email}
                       </span>
                     )}
 
                     <span className="text-xs" style={{ color: '#7C365F' }}>
-                      נרשמה בתאריך{' '}
+                      נרשמה{' '}
                       {new Date(u.created_at).toLocaleDateString('he-IL')}
                     </span>
 

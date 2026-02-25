@@ -81,3 +81,39 @@ La colonne `end_date` doit exister dans la table `beneficiaries` pour le compte 
 ```sql
 ALTER TABLE beneficiaries ADD COLUMN IF NOT EXISTS end_date date;
 ```
+
+---
+
+## Phase 6 — Migrations à exécuter (fichier : supabase/migrations/001_phase6_schema.sql)
+
+Exécuter le fichier `supabase/migrations/001_phase6_schema.sql` dans **Supabase > SQL Editor**.
+
+### Nouvelles colonnes sur `beneficiaries`
+- `num_adults`, `num_children`, `children_ages` — composition du foyer
+- `is_vegetarian`, `spicy_level` (0-2), `cooking_notes` — préférences alimentaires
+- `preferred_time_slot_id` — FK vers `time_slots`
+- `shabbat_friday`, `shabbat_saturday`, `shabbat_kashrut` — préférences Shabbat
+
+### Nouvelles tables
+- **`time_slots`** : créneaux horaires définis par l'admin (5 créneaux par défaut insérés)
+- **`meal_items`** : items Shabbat réservables individuellement par les cuisinières
+- **`feedbacks`** : notation 1-5 + message de remerciement après confirmation
+
+### Nouvelles colonnes sur `meals`
+- `time_slot_id` — FK vers `time_slots`
+- `conflict_at` — horodatage si conflit de réservation détecté
+
+### Fonctions SQL atomiques (SECURITY DEFINER)
+- `take_meal_atomic(meal_id, user_id, role)` — prise de repas sans conflit
+- `reserve_meal_item_atomic(item_id, cook_id)` — réservation item Shabbat sans conflit
+
+### Triggers
+- `trg_shabbat_complete` — notifie l'admin quand tous les items Shabbat sont couverts
+
+### RLS granulaire sur `meals`
+- יולדת liée : peut passer `delivered → confirmed` uniquement
+- Cuisinière assignée : peut passer `cook_assigned/cooking → ready` uniquement
+- Livreuse assignée : peut passer `driver_assigned/picked_up → suivant` uniquement
+- Cuisinière approuvée : peut prendre un repas `open`
+- Livreuse approuvée : peut prendre un repas `ready`
+- Admin : peut tout modifier

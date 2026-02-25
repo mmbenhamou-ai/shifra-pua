@@ -89,7 +89,7 @@ export default async function DriverDashboard() {
       .select(`id, date, type, status, pickup_time, delivery_time,
         cook:cook_id(name, address),
         beneficiary:beneficiary_id(user:user_id(name, phone, address))`)
-      .in('status', ['cook_assigned', 'ready'])
+      .eq('status', 'ready')
       .gte('date', today)
       .order('date', { ascending: true }),
   ]);
@@ -190,7 +190,17 @@ export default async function DriverDashboard() {
                 <div className="px-5 pb-5 pt-3 space-y-2">
                   {!isPickedUp && (
                     <>
-                      <PickedUpButton mealId={meal.id as string} />
+                      {/* "אני בדרך לאיסוף" → Waze vers cuisinière + status change */}
+                      {cook?.address && (
+                        <a
+                          href={`https://waze.com/ul?q=${encodeURIComponent(cook.address)}&navigate=yes`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold text-white transition active:scale-[0.97]"
+                          style={{ background: 'linear-gradient(135deg,#00A0DC,#0080B3)', boxShadow: '0 4px 18px rgba(0,160,220,0.30)' }}>
+                          <span className="text-lg">🗺️</span> אני בדרך לאיסוף
+                        </a>
+                      )}
+                      <PickedUpButton mealId={meal.id as string} benAddress={ben?.address} />
                       <ReleaseButton mealId={meal.id as string} />
                     </>
                   )}

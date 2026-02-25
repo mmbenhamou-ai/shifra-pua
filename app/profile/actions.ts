@@ -13,13 +13,14 @@ export async function updateProfile(formData: FormData) {
   const phone        = (formData.get('phone') as string).trim();
   const address      = (formData.get('address') as string | null)?.trim() || null;
   const neighborhood = (formData.get('neighborhood') as string | null)?.trim() || null;
+  const email        = (formData.get('email') as string | null)?.trim() || null;
 
   if (!name || !phone) throw new Error('שם וטלפון הם שדות חובה');
 
   const admin = createAdminClient();
   const { error } = await admin
     .from('users')
-    .update({ name, phone, address, neighborhood })
+    .update({ name, phone, address, neighborhood, email })
     .eq('id', session.user.id);
 
   if (error) throw new Error('שגיאה בשמירת הפרטים: ' + error.message);

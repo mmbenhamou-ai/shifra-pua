@@ -11,7 +11,7 @@ export default async function BeneficiaryDashboard() {
 
   const { data: beneficiary } = await supabase
     .from('beneficiaries')
-    .select('id, end_date')
+    .select('id, end_date, is_vegetarian, spicy_level, cooking_notes, shabbat_friday, shabbat_saturday, shabbat_kashrut')
     .eq('user_id', session.user.id)
     .maybeSingle();
 
@@ -20,6 +20,14 @@ export default async function BeneficiaryDashboard() {
     .select('name')
     .eq('id', session.user.id)
     .maybeSingle();
+
+  // Message de bienvenue admin
+  const { data: settingRow } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'welcome_message')
+    .maybeSingle();
+  const welcomeMessage = (settingRow?.value as string | null) ?? null;
 
   const mealsRaw = beneficiary
     ? (await supabase
@@ -70,8 +78,53 @@ export default async function BeneficiaryDashboard() {
         </div>
       </header>
 
+      {/* ── הודעת ברכה מהאדמין ── */}
+      {welcomeMessage && (
+        <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm">
+          <p className="text-sm text-zinc-700 leading-relaxed">💛 {welcomeMessage}</p>
+        </div>
+      )}
+
       {/* ── ספירה לאחור ── */}
       <MealCountdown endDate={endDate} />
+
+      {/* ── העדפות שלי ── */}
+      {beneficiary && (
+        <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm space-y-2">
+          <p className="text-xs font-bold" style={{ color: '#811453' }}>ההגדרות שלי</p>
+          <div className="flex flex-wrap gap-1.5 justify-end">
+            {beneficiary.is_vegetarian && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: '#D1FAE5', color: '#065F46' }}>🥗 צמחוני</span>
+            )}
+            {typeof beneficiary.spicy_level === 'number' && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                {['לא חריף 😌', 'קצת חריף 🌶', 'חריף 🔥'][beneficiary.spicy_level as number]}
+              </span>
+            )}
+            {beneficiary.shabbat_friday && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>🕯️ שבת ליל</span>
+            )}
+            {beneficiary.shabbat_saturday && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: '#DBEAFE', color: '#1E40AF' }}>☀️ שבת צהריים</span>
+            )}
+            {beneficiary.shabbat_kashrut && beneficiary.shabbat_kashrut !== 'רגיל' && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    style={{ backgroundColor: '#F3F4F6', color: '#374151' }}>
+                כשרות: {beneficiary.shabbat_kashrut as string}
+              </span>
+            )}
+          </div>
+          {beneficiary.cooking_notes && (
+            <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-1.5 text-right">
+              ⚠️ {beneficiary.cooking_notes as string}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* ── ארוחה של היום (Featured card) ── */}
       {todayMeals.length > 0 ? (

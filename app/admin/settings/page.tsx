@@ -85,6 +85,23 @@ export default async function SettingsPage() {
         </button>
       </form>
 
+      {/* Links rapides */}
+      <div className="rounded-2xl border border-[#F7D4E2] bg-white overflow-hidden shadow-sm divide-y divide-[#FBE4F0]">
+        <div className="px-4 py-3">
+          <p className="text-sm font-bold text-right" style={{ color: '#811453' }}>ניהול מתקדם</p>
+        </div>
+        <a href="/admin/timeslots"
+           className="flex items-center justify-between px-4 py-3 transition active:bg-[#FBE4F0]">
+          <span className="text-sm" style={{ color: '#811453' }}>←</span>
+          <span className="text-sm font-medium text-zinc-800">חלונות זמן לאיסוף ומסירה ⏰</span>
+        </a>
+        <a href="/admin/menus"
+           className="flex items-center justify-between px-4 py-3 transition active:bg-[#FBE4F0]">
+          <span className="text-sm" style={{ color: '#811453' }}>←</span>
+          <span className="text-sm font-medium text-zinc-800">ניהול תפריטים 🍽️</span>
+        </a>
+      </div>
+
       {/* SQL hint */}
       <details className="rounded-xl border border-[#F7D4E2] bg-white px-4 py-3">
         <summary className="cursor-pointer text-xs font-medium text-right" style={{ color: '#811453' }}>
