@@ -15,6 +15,29 @@ const ROLE_REDIRECTS: Record<string, string> = {
 const VALID_ROLES = ['admin', 'cook', 'driver', 'beneficiary', 'cook-driver'] as const;
 type DemoRole = typeof VALID_ROLES[number];
 
+const DEMO_CREDENTIALS: Record<DemoRole, { email: string; password: string }> = {
+  admin: {
+    email:    'demo-admin@shifra-pua.dev',
+    password: 'DemoAdmin123!',
+  },
+  cook: {
+    email:    'demo-cook@shifra-pua.dev',
+    password: 'DemoCook123!',
+  },
+  driver: {
+    email:    'demo-driver@shifra-pua.dev',
+    password: 'DemoDriver123!',
+  },
+  beneficiary: {
+    email:    'demo-beneficiary@shifra-pua.dev',
+    password: 'DemoBeneficiary123!',
+  },
+  'cook-driver': {
+    email:    'demo-cook-driver@shifra-pua.dev',
+    password: 'DemoCookDriver123!',
+  },
+};
+
 export default function DemoLoginPage() {
   const router = useRouter();
   const params = useParams<{ role: string }>();
@@ -35,23 +58,11 @@ export default function DemoLoginPage() {
         setError(null);
         setLoading(true);
 
-        // 1) S’assurer que l’utilisateur demo existe côté Supabase
-        const res = await fetch(`/api/demo-login/${roleParam}`, { method: 'POST' });
-        const json = await res.json();
-
-        if (!res.ok) {
-          setError(json?.error || 'שגיאה ביצירת משתמש הדמו');
-          setLoading(false);
-          return;
-        }
-
-        const { email, password } = json as { email: string; password: string };
-
-        // 2) Connexion côté client avec email/password
+        const creds = DEMO_CREDENTIALS[roleParam];
         const supabase = createSupabaseBrowserClient();
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: creds.email,
+          password: creds.password,
         });
 
         if (signInError || !data.session) {
@@ -60,7 +71,6 @@ export default function DemoLoginPage() {
           return;
         }
 
-        // 3) Redirection vers le bon tableau de bord
         const dest = ROLE_REDIRECTS[roleParam] ?? '/';
         router.replace(dest);
       } catch (e) {
