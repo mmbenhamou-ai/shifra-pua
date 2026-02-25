@@ -13,9 +13,12 @@ export async function GET(req: NextRequest) {
   const { searchParams, origin } = req.nextUrl;
   const code = searchParams.get('code');
   const role = searchParams.get('role') ?? 'cook';
+  const dest = ROLE_REDIRECTS[role] ?? '/';
 
+  // Supabase envoie un ?code= (flow PKCE) quand redirectTo est défini
   if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
+    // Pas de code : rediriger vers une page client qui lit le fragment #access_token
+    return NextResponse.redirect(`${origin}/demo/session?role=${role}`);
   }
 
   const cookieStore = await cookies();
@@ -34,9 +37,9 @@ export async function GET(req: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login`);
+    console.error('exchangeCodeForSession error:', error.message);
+    return NextResponse.redirect(`${origin}/demo/session?role=${role}`);
   }
 
-  const dest = ROLE_REDIRECTS[role] ?? '/';
   return NextResponse.redirect(`${origin}${dest}`);
 }

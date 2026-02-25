@@ -124,22 +124,19 @@ export async function GET(
     });
   }
 
-  // Générer un magic link pour créer la session
+  // Générer un magic link — redirectTo encode le rôle pour la callback
+  const redirectTo = `${req.nextUrl.origin}/demo/callback?role=${demoUser.role}`;
+
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type:  'magiclink',
     email: demoUser.email,
-    options: {
-      redirectTo: `${req.nextUrl.origin}/demo/callback`,
-    },
+    options: { redirectTo },
   });
 
-  if (linkErr || !linkData?.properties?.hashed_token) {
+  if (linkErr || !linkData?.properties?.action_link) {
     return NextResponse.json({ error: 'Erreur génération lien', details: linkErr?.message }, { status: 500 });
   }
 
-  // Rediriger vers le magic link Supabase qui crée la session
-  const supabaseUrl    = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const confirmUrl     = `${supabaseUrl}/auth/v1/verify?token=${linkData.properties.hashed_token}&type=magiclink&redirect_to=${req.nextUrl.origin}/demo/callback?role=${demoUser.role}`;
-
-  return NextResponse.redirect(confirmUrl);
+  // action_link est l'URL complète gérée par Supabase — on redirige directement
+  return NextResponse.redirect(linkData.properties.action_link);
 }
