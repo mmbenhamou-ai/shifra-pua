@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 
 const VALID_ROLES = ['admin', 'cook', 'driver', 'beneficiary', 'cook-driver'] as const;
 type DemoRole = typeof VALID_ROLES[number];
@@ -68,20 +66,6 @@ export async function GET(
   { params }: { params: Promise<{ role: string }> },
 ) {
   const { role: roleParam } = await params;
-  const token = req.nextUrl.searchParams.get('token');
-
-  // Vérification du token
-  const expectedToken = process.env.DEMO_TOKEN;
-  if (!expectedToken || token !== expectedToken) {
-    return NextResponse.json({
-      error: 'Token invalide',
-      debug: {
-        received: token,
-        envDefined: !!expectedToken,
-        match: token === expectedToken,
-      }
-    }, { status: 403 });
-  }
 
   // Vérification du rôle
   if (!VALID_ROLES.includes(roleParam as DemoRole)) {
