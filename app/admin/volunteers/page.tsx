@@ -1,16 +1,12 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export default async function VolunteersPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: string; q?: string }>;
 }) {
   const { role = 'all', q = '' } = await searchParams;
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   let query = admin
     .from('users')

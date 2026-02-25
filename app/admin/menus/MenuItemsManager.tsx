@@ -22,7 +22,7 @@ export default function MenuItemsManager({
   return (
     <div className="px-4 py-3 space-y-1.5">
       {items.map((item, i) => (
-        <div key={i}
+        <div key={`${menuId}-${i}-${item}`}
              className="flex items-center justify-between gap-2 rounded-xl border border-[#F7D4E2] bg-[#FFF7FB] px-3 py-2">
           {/* מחיקה */}
           <button

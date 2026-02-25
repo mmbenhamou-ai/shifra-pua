@@ -1,9 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 const ACTION_ICONS: Record<string, string> = {
   meal_taken:           '🍲',
   meal_ready:           '✅',
@@ -26,7 +22,7 @@ export default async function AdminLogsPage({
   const perPage = 30;
   const offset  = (pageNum - 1) * perPage;
 
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   // Essayer de lire depuis notifications_log comme audit trail
   const { data: logs, count } = await admin

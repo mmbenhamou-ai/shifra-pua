@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export async function GET() {
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   const [
     { count: totalMeals },

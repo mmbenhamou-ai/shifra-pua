@@ -4,10 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export async function updateProfile(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
@@ -20,7 +16,7 @@ export async function updateProfile(formData: FormData) {
 
   if (!name || !phone) throw new Error('שם וטלפון הם שדות חובה');
 
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin
     .from('users')
     .update({ name, phone, address, neighborhood })

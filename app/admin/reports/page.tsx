@@ -1,10 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 import Link from 'next/link';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export default async function ReportsPage({
   searchParams,
 }: {
@@ -17,7 +13,7 @@ export default async function ReportsPage({
   const start = new Date(y, m - 1, 1).toISOString().split('T')[0];
   const end   = new Date(y, m, 0).toISOString().split('T')[0];
 
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   const [
     { count: totalMeals },

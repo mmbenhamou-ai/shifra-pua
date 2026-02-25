@@ -4,19 +4,15 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export async function updateMealStatus(mealId: string, status: string) {
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin.from('meals').update({ status }).eq('id', mealId);
   if (error) throw new Error('שגיאה בעדכון סטטוס: ' + error.message);
   revalidatePath('/admin/meals');
 }
 
 export async function assignCook(mealId: string, cookId: string) {
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin
     .from('meals')
     .update({ cook_id: cookId || null, status: cookId ? 'cook_assigned' : 'open' })
@@ -26,7 +22,7 @@ export async function assignCook(mealId: string, cookId: string) {
 }
 
 export async function assignDriver(mealId: string, driverId: string) {
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin
     .from('meals')
     .update({ driver_id: driverId || null, status: driverId ? 'driver_assigned' : 'cook_assigned' })
@@ -36,7 +32,7 @@ export async function assignDriver(mealId: string, driverId: string) {
 }
 
 export async function deleteMeal(mealId: string) {
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin.from('meals').delete().eq('id', mealId);
   if (error) throw new Error('שגיאה במחיקת הארוחה: ' + error.message);
   revalidatePath('/admin/meals');
@@ -51,7 +47,7 @@ export async function createManualMeal(formData: FormData) {
 
   if (!beneficiaryId || !date || !type) throw new Error('נא למלא את כל השדות');
 
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { error } = await admin.from('meals').insert({
     beneficiary_id: beneficiaryId,
     date,

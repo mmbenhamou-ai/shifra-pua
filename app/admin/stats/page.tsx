@@ -2,10 +2,6 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 function weekLabel(offset: number): string {
   const d = new Date();
   d.setDate(d.getDate() - d.getDay() - 7 * offset);
@@ -18,7 +14,7 @@ export default async function StatsPage() {
   if (!session) redirect('/login');
   const { data: me } = await supabase.from('users').select('role').eq('id', session.user.id).maybeSingle();
   if (me?.role !== 'admin') redirect('/');
-  const admin = adminClient();
+  const admin = createAdminClient();
   const now   = new Date();
 
   // --- Totaux globaux ---
@@ -64,11 +60,11 @@ export default async function StatsPage() {
     .select('cook_id, cook:cook_id(name)')
     .not('cook_id', 'is', null);
 
-  const cookMap: Record<string, { name: string; count: number }> = {};
+  const cookMap: Record<string, { id: string; name: string; count: number }> = {};
   (cookMeals ?? []).forEach((m) => {
     const cId   = m.cook_id as string;
     const cName = (m.cook as { name?: string } | null)?.name ?? cId;
-    if (!cookMap[cId]) cookMap[cId] = { name: cName, count: 0 };
+    if (!cookMap[cId]) cookMap[cId] = { id: cId, name: cName, count: 0 };
     cookMap[cId].count++;
   });
   const topCooks = Object.values(cookMap).sort((a, b) => b.count - a.count).slice(0, 5);
@@ -79,11 +75,11 @@ export default async function StatsPage() {
     .select('driver_id, driver:driver_id(name)')
     .not('driver_id', 'is', null);
 
-  const driverMap: Record<string, { name: string; count: number }> = {};
+  const driverMap: Record<string, { id: string; name: string; count: number }> = {};
   (driverMeals ?? []).forEach((m) => {
     const dId   = m.driver_id as string;
     const dName = (m.driver as { name?: string } | null)?.name ?? dId;
-    if (!driverMap[dId]) driverMap[dId] = { name: dName, count: 0 };
+    if (!driverMap[dId]) driverMap[dId] = { id: dId, name: dName, count: 0 };
     driverMap[dId].count++;
   });
   const topDrivers = Object.values(driverMap).sort((a, b) => b.count - a.count).slice(0, 5);
@@ -163,7 +159,7 @@ export default async function StatsPage() {
           ) : (
             <ol className="space-y-2">
               {topCooks.map((c, i) => (
-                <li key={c.name} className="flex items-center justify-between text-sm">
+                <li key={c.id} className="flex items-center justify-between text-sm">
                   <span className="font-bold" style={{ color: '#811453' }}>{c.count} ארוחות</span>
                   <span className="flex items-center gap-1.5 text-zinc-800">
                     <span className="text-zinc-400 text-xs">#{i + 1}</span>
@@ -183,7 +179,7 @@ export default async function StatsPage() {
           ) : (
             <ol className="space-y-2">
               {topDrivers.map((d, i) => (
-                <li key={d.name} className="flex items-center justify-between text-sm">
+                <li key={d.id} className="flex items-center justify-between text-sm">
                   <span className="font-bold" style={{ color: '#811453' }}>{d.count} משלוחים</span>
                   <span className="flex items-center gap-1.5 text-zinc-800">
                     <span className="text-zinc-400 text-xs">#{i + 1}</span>

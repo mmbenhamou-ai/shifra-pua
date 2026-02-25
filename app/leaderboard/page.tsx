@@ -1,12 +1,8 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 import Link from 'next/link';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 export default async function LeaderboardPage() {
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   const now   = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -15,19 +11,19 @@ export default async function LeaderboardPage() {
   const { data: cookMeals }  = await admin.from('meals').select('cook_id, cook:cook_id(name)').not('cook_id', 'is', null).gte('date', start).lte('date', end);
   const { data: driverMeals } = await admin.from('meals').select('driver_id, driver:driver_id(name)').not('driver_id', 'is', null).gte('date', start).lte('date', end);
 
-  const cookMap: Record<string, { name: string; count: number }> = {};
+  const cookMap: Record<string, { id: string; name: string; count: number }> = {};
   (cookMeals ?? []).forEach((m) => {
     const id   = m.cook_id as string;
     const name = (m.cook as { name?: string } | null)?.name ?? id;
-    if (!cookMap[id]) cookMap[id] = { name, count: 0 };
+    if (!cookMap[id]) cookMap[id] = { id, name, count: 0 };
     cookMap[id].count++;
   });
 
-  const driverMap: Record<string, { name: string; count: number }> = {};
+  const driverMap: Record<string, { id: string; name: string; count: number }> = {};
   (driverMeals ?? []).forEach((m) => {
     const id   = m.driver_id as string;
     const name = (m.driver as { name?: string } | null)?.name ?? id;
-    if (!driverMap[id]) driverMap[id] = { name, count: 0 };
+    if (!driverMap[id]) driverMap[id] = { id, name, count: 0 };
     driverMap[id].count++;
   });
 
@@ -63,7 +59,7 @@ export default async function LeaderboardPage() {
           ) : (
             <ol className="divide-y divide-[#FBE4F0]">
               {topCooks.map((c, i) => (
-                <li key={c.name} className="flex items-center gap-3 px-5 py-3.5">
+                <li key={c.id} className="flex items-center gap-3 px-5 py-3.5">
                   <span className="text-xl w-7 text-center">{medals[i] ?? `${i + 1}.`}</span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white flex-shrink-0"
                        style={{ background: i === 0 ? 'linear-gradient(135deg,#F59E0B,#D97706)' : '#811453' }}>
@@ -90,7 +86,7 @@ export default async function LeaderboardPage() {
           ) : (
             <ol className="divide-y divide-[#FBE4F0]">
               {topDrivers.map((d, i) => (
-                <li key={d.name} className="flex items-center gap-3 px-5 py-3.5">
+                <li key={d.id} className="flex items-center gap-3 px-5 py-3.5">
                   <span className="text-xl w-7 text-center">{medals[i] ?? `${i + 1}.`}</span>
                   <div className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white flex-shrink-0"
                        style={{ background: i === 0 ? 'linear-gradient(135deg,#F59E0B,#D97706)' : '#811453' }}>

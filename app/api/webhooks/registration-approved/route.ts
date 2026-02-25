@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { checkWebhookAuth } from '../_auth';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 // n8n polling : GET /api/webhooks/registration-approved?since=<ISO_DATE>
 export async function GET(req: NextRequest) {
   const authErr = checkWebhookAuth(req);
@@ -13,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const since = req.nextUrl.searchParams.get('since');
 
-  const admin = adminClient();
+  const admin = createAdminClient();
   let query = admin
     .from('users')
     .select('id, name, role, phone, address, approved, created_at')

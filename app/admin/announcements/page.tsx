@@ -2,10 +2,6 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 async function sendAnnouncement(formData: FormData) {
   'use server';
   const message  = (formData.get('message') as string).trim();
@@ -13,7 +9,7 @@ async function sendAnnouncement(formData: FormData) {
 
   if (!message) throw new Error('נא להזין הודעה');
 
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   // Get target users
   let query = admin.from('users').select('id').eq('approved', true);

@@ -3,10 +3,6 @@ import MealStatusSelect from './MealStatusSelect';
 import AssignSelect from './AssignSelect';
 import DeleteMealButton from './DeleteMealButton';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
   open:            { label: 'פנויה',          bg: '#FEF3C7', color: '#92400E' },
   cook_assigned:   { label: 'יש מבשלת',       bg: '#DBEAFE', color: '#1E40AF' },
@@ -40,7 +36,7 @@ export default async function MealsAdminPage({
   searchParams: Promise<{ status?: string; date?: string; type?: string }>;
 }) {
   const { status = 'all', date, type } = await searchParams;
-  const admin = adminClient();
+  const admin = createAdminClient();
 
   let query = admin
     .from('meals')

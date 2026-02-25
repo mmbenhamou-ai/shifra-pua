@@ -9,13 +9,12 @@ export async function releaseMealAsCook(mealId: string) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('לא מחוברת');
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'open', cook_id: null })
     .eq('id', mealId)
     .eq('cook_id', session.user.id)
-    .eq('status', 'cook_assigned'); // Only release if not already ready
+    .eq('status', 'cook_assigned');
 
   if (error) throw new Error('שגיאה בהחזרת הארוחה: ' + error.message);
   revalidatePath('/cook');
@@ -26,8 +25,7 @@ export async function releaseMealAsDriver(mealId: string) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('לא מחוברת');
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'ready', driver_id: null })
     .eq('id', mealId)

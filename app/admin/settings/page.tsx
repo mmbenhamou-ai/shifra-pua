@@ -1,13 +1,9 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 async function saveSettings(formData: FormData) {
   'use server';
-  const admin = adminClient();
+  const admin = createAdminClient();
   const settings = {
     default_breakfast_days:   parseInt(formData.get('default_breakfast_days') as string) || 14,
     default_shabbat_weeks:    parseInt(formData.get('default_shabbat_weeks') as string)  || 4,
@@ -24,7 +20,7 @@ async function saveSettings(formData: FormData) {
 }
 
 export default async function SettingsPage() {
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { data: rows } = await admin.from('app_settings').select('key, value');
   const s: Record<string, string> = {};
   (rows ?? []).forEach((r) => { s[r.key as string] = r.value as string; });

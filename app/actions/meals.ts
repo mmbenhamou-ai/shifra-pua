@@ -14,8 +14,8 @@ async function getSession() {
 export async function confirmMealReceived(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'confirmed' })
     .eq('id', mealId);
@@ -27,8 +27,8 @@ export async function confirmMealReceived(mealId: string) {
 export async function takeMeal(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'cook_assigned', cook_id: session.user.id })
     .eq('id', mealId)
@@ -41,8 +41,8 @@ export async function takeMeal(mealId: string) {
 export async function markMealReady(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'ready' })
     .eq('id', mealId)
@@ -55,8 +55,8 @@ export async function markMealReady(mealId: string) {
 export async function takeDelivery(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'driver_assigned', driver_id: session.user.id })
     .eq('id', mealId)
@@ -69,8 +69,8 @@ export async function takeDelivery(mealId: string) {
 export async function markPickedUp(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'picked_up' })
     .eq('id', mealId)
@@ -83,8 +83,8 @@ export async function markPickedUp(mealId: string) {
 export async function markDelivered(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
-  const admin = createAdminClient();
-  const { error } = await admin
+
+  const { error } = await createAdminClient()
     .from('meals')
     .update({ status: 'delivered' })
     .eq('id', mealId)

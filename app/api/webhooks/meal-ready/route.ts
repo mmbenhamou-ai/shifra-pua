@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { checkWebhookAuth } from '../_auth';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 // n8n polling : repas marqués "מוכן לאיסוף" (status=ready)
 // GET /api/webhooks/meal-ready?since=<ISO_DATE>
 export async function GET(req: NextRequest) {
@@ -14,7 +10,7 @@ export async function GET(req: NextRequest) {
 
   const since = req.nextUrl.searchParams.get('since');
 
-  const admin = adminClient();
+  const admin = createAdminClient();
   let query = admin
     .from('meals')
     .select(`

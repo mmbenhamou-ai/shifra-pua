@@ -165,7 +165,7 @@ export default async function CookDashboard() {
                         </div>
                         <ul className="divide-y divide-[#FBE4F0] bg-white">
                           {menu.items.map((item: string, i: number) => (
-                            <li key={i} className="flex items-center justify-between px-4 py-2.5">
+                            <li key={`${meal.id as string}-item-${i}`} className="flex items-center justify-between px-4 py-2.5">
                               <span className="text-xs text-zinc-400">{i + 1}</span>
                               <span className="text-sm text-zinc-800">{item}</span>
                             </li>

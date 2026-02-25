@@ -1,9 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-admin';
 
-function adminClient() {
-  return createAdminClient();
-}
-
 const STATUS_META: Record<string, { label: string; dot: string; bg: string; text: string }> = {
   open:            { label: 'פנויה',          dot: '#F59E0B', bg: '#FEF3C7', text: '#92400E' },
   cook_assigned:   { label: 'יש מבשלת',       dot: '#3B82F6', bg: '#DBEAFE', text: '#1E40AF' },
@@ -48,7 +44,7 @@ export default async function CalendarPage({
   const from = toStr(days[0]);
   const to   = toStr(days[6]);
 
-  const admin = adminClient();
+  const admin = createAdminClient();
   const { data: meals } = await admin
     .from('meals')
     .select(`
