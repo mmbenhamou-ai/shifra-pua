@@ -73,7 +73,14 @@ export async function GET(
   // Vérification du token
   const expectedToken = process.env.DEMO_TOKEN;
   if (!expectedToken || token !== expectedToken) {
-    return NextResponse.json({ error: 'Token invalide' }, { status: 403 });
+    return NextResponse.json({
+      error: 'Token invalide',
+      debug: {
+        received: token,
+        envDefined: !!expectedToken,
+        match: token === expectedToken,
+      }
+    }, { status: 403 });
   }
 
   // Vérification du rôle
