@@ -108,6 +108,17 @@ export async function POST(
       authUserId = created.user.id;
     }
 
+    // Forcer le mot de passe connu pour le user demo (utile si déjà créé avec un autre password)
+    const { error: pwErr } = await admin.auth.admin.updateUserById(authUserId, {
+      password: demo.password,
+    });
+    if (pwErr) {
+      return NextResponse.json(
+        { error: 'Erreur mise à jour password demo', details: pwErr.message },
+        { status: 500 },
+      );
+    }
+
     // Upsert dans la table applicative users, basé sur l'id Auth (PK)
     const { error: upsertErr } = await admin.from('users').upsert({
       id:          authUserId,
