@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 type Stage = 'phone' | 'code';
+type Method = 'phone' | 'email';
 
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -15,13 +16,33 @@ function normalizePhone(raw: string): string {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [method, setMethod] = useState<Method>('phone');
   const [stage, setStage] = useState<Stage>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createSupabaseBrowserClient();
+
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!email.trim() || !password.trim()) { setError('נא למלא אימייל וסיסמה'); return; }
+    setLoading(true);
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (signInError || !data.session) { setError(signInError?.message || 'אימייל או סיסמה שגויים'); return; }
+      const { data: profile } = await supabase.from('users').select('role, approved').eq('id', data.session.user.id).maybeSingle();
+      if (!profile) { router.replace('/signup'); return; }
+      if (!profile.approved) { router.replace('/signup/pending'); return; }
+      const routes: Record<string, string> = { admin: '/admin', beneficiary: '/beneficiary', cook: '/cook', driver: '/driver' };
+      router.replace(routes[profile.role as string] ?? '/');
+    } catch { setError('אירעה שגיאה בלתי צפויה. נסי שוב.'); }
+    finally { setLoading(false); }
+  }
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -109,9 +130,49 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* בחירת שיטת כניסה */}
+        <div className="mb-4 flex rounded-2xl bg-white/60 p-1 shadow-sm">
+          {([['phone', 'SMS 📱'], ['email', 'אימייל 📧']] as const).map(([m, label]) => (
+            <button key={m} type="button"
+              onClick={() => { setMethod(m); setError(null); setStage('phone'); }}
+              className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition"
+              style={{
+                backgroundColor: method === m ? '#811453' : 'transparent',
+                color: method === m ? '#fff' : '#811453',
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* טופס */}
         <div className="rounded-3xl bg-white px-6 py-7 shadow-xl shadow-[#811453]/10">
-          {stage === 'phone' ? (
+
+          {/* ── Email/Password ── */}
+          {method === 'email' && (
+            <form onSubmit={handleEmailLogin} className="space-y-5">
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>כניסה עם אימייל</h2>
+                <p className="text-sm text-right" style={{ color: '#7C365F' }}>למשתמשים שנוצרו עם אימייל וסיסמה</p>
+              </div>
+              <div className="space-y-3">
+                <input type="email" dir="ltr" placeholder="admin@example.com" value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-sm text-left text-zinc-900 placeholder:text-gray-400 focus:border-[#811453] focus:outline-none transition-colors" />
+                <input type="password" dir="ltr" placeholder="••••••••" value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-sm text-left text-zinc-900 placeholder:text-gray-400 focus:border-[#811453] focus:outline-none transition-colors" />
+              </div>
+              {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-right text-red-700">{error}</p>}
+              <button type="submit" disabled={loading}
+                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
+                style={{ backgroundColor: '#811453' }}>
+                {loading ? '...נכנסת' : 'כניסה ←'}
+              </button>
+            </form>
+          )}
+
+          {method === 'phone' && (stage === 'phone' ? (
             <form onSubmit={handleSendCode} className="space-y-5">
               <div className="space-y-1.5">
                 <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>
@@ -221,7 +282,7 @@ export default function LoginPage() {
                 ← להחליף מספר טלפון
               </button>
             </form>
-          )}
+          ))}
         </div>
 
         {/* dev hint */}
