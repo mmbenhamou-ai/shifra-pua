@@ -82,8 +82,21 @@ export default async function ProfilePage() {
           />
         </section>
 
-        <section>
-          <a
+        <section className="space-y-3">
+          <Link
+            href="/help"
+            className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#91006A]/10 hover:bg-[#91006A]/5 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full bg-[#91006A]/10 flex items-center justify-center text-[#91006A]">
+                <span className="material-symbols-outlined">help_center</span>
+              </div>
+              <span className="font-semibold text-[#403728]">מדריך ומרכז עזרה</span>
+            </div>
+            <span className="material-symbols-outlined text-[#403728]/40">chevron_left</span>
+          </Link>
+
+          <Link
             href="/about"
             className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#91006A]/10 hover:bg-[#91006A]/5 transition-colors"
           >
@@ -94,7 +107,7 @@ export default async function ProfilePage() {
               <span className="font-semibold text-[#403728]">אודות שפרה ופועה</span>
             </div>
             <span className="material-symbols-outlined text-[#403728]/40">chevron_left</span>
-          </a>
+          </Link>
         </section>
         <div className="pt-4">
           <LogoutButton className="w-full flex items-center justify-center gap-2 py-4 bg-[#91006A] text-white font-bold rounded-xl shadow-lg shadow-[#91006A]/20 hover:bg-[#91006A]/90 transition-all" />

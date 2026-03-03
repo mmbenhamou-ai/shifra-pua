@@ -136,9 +136,19 @@ export default async function DriverDashboard({
       {/* ── Active deliveries — style Wolt tracking ── */}
       {mine.length > 0 && (
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>{mine.length}</span>
-            <h3 className="text-base font-bold" style={{ color: 'var(--brand)' }}>משלוחים פעילים</h3>
+          <div className="flex items-center justify-between pb-1">
+            <h3 className="text-base font-bold text-right" style={{ color: 'var(--brand)' }}>
+              משלוחים פעילים
+              <span className="ml-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white bg-[#91006A]">{mine.length}</span>
+            </h3>
+            <a
+              href={`/api/calendar/${session.user.id}?role=driver`}
+              className="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+              style={{ backgroundColor: '#FFF7FB', color: 'var(--brand)', border: '1px solid #FBE4F0' }}
+            >
+              <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+              סנכרון ליומן
+            </a>
           </div>
 
           {mine.map((meal) => {

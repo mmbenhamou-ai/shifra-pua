@@ -144,9 +144,19 @@ export default async function CookDashboard({
       {/* ── הארוחות שלי ── */}
       {mine.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>
-            הארוחות שלי 👩‍🍳
-          </h3>
+          <div className="flex items-center justify-between pb-1">
+            <h3 className="text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>
+              הארוחות שלי 👩‍🍳
+            </h3>
+            <a
+              href={`/api/calendar/${session.user.id}?role=cook`}
+              className="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+              style={{ backgroundColor: '#FFF7FB', color: 'var(--brand)', border: '1px solid #FBE4F0' }}
+            >
+              <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+              סנכרון ליומן
+            </a>
+          </div>
           <div className="space-y-3">
             {mine.map((meal) => {
               const benRaw = meal.beneficiary as { is_vegetarian?: boolean; spicy_level?: number; cooking_notes?: string; user?: { name?: string; address?: string; neighborhood?: string } } | null;
