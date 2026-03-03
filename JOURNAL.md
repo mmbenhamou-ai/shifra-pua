@@ -19,6 +19,14 @@
 
 **Date :** 2026-03-03 | **Durée :** 3h
 **Complété :**
+- Lancement de la batterie finale "Nice-to-have" de l'audit (M10 à M19 complétés)
+- (M18) Mode Sombre complet via `globals.css` et match de couleurs natives pour PWA.
+- (M19) Monitoring Sentry V10 via `withSentryConfig` et `@sentry/nextjs`.
+- (M16) API Endpoint `/api/calendar/[userId]` pour la Synchronisation Agenda des bénévoles (.ICS généré à la volée).
+- (M05) Refonte complète d'une Landing Page (`/`) publique avec stats anonymisées, lien vers le compte /about, etc.
+- (M06) Centre d'Aide Dynamique (`/help`) avec guides par rôles.
+- (M10, M11) Vérification de la complétion des cronjobs Vercel pour relances J-48 et Shabbat recap (`vercel.json`).
+- (M20) Tests Unitaires Vitest vérifiés et passing (23/23).
 - Exécution de nombreuses tâches manquantes pour atteindre l'état "Production".
 - Remplacement du middleware par l'API `createServerClient` sans boucle de set.
 - Correction des problèmes d'authentification avec `createAdminClient` via un hook limitant son appel côté serveur (`lib/supabase-admin.ts`).
