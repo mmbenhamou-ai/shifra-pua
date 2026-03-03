@@ -89,12 +89,14 @@ function AddressAutocomplete({
         componentRestrictions: { country: 'il' },
       });
 
-      listener = autocomplete.addListener('place_changed', () => {
-        const place = autocomplete?.getPlace();
-        if (place?.formatted_address) {
-          onChange(place.formatted_address);
-        }
-      });
+      if (autocomplete) {
+        listener = autocomplete.addListener('place_changed', () => {
+          const place = autocomplete?.getPlace();
+          if (place?.formatted_address) {
+            onChange(place.formatted_address);
+          }
+        });
+      }
       return true;
     };
 
