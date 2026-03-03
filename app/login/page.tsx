@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { ArrowRight, Smartphone, Send, Heart, CheckCircle } from 'lucide-react';
 
 type Stage = 'phone' | 'code';
 
@@ -95,7 +96,7 @@ export default function LoginPage() {
             className="text-[#91006A] p-2 hover:bg-[#91006A]/10 rounded-full transition-colors"
             onClick={() => router.replace('/')}
           >
-            <span className="material-symbols-outlined">arrow_forward</span>
+            <ArrowRight className="w-5 h-5 mx-auto" />
           </button>
           <h2 className="text-[#91006A] text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-8">
             התחברות
@@ -104,7 +105,7 @@ export default function LoginPage() {
 
         <div className="px-6 pt-8 pb-4 flex flex-col items-center">
           <div className="w-24 h-24 bg-[#91006A]/10 rounded-full flex items-center justify-center mb-6 aspect-square">
-            <span className="material-symbols-outlined text-[#91006A] text-5xl">volunteer_activism</span>
+            <Heart className="w-12 h-12 text-[#91006A] mx-auto" />
           </div>
           <h1 className="text-slate-900 text-3xl font-bold leading-tight text-center">שלום!</h1>
           <p className="text-slate-600 text-base font-normal leading-normal mt-2 text-center">
@@ -131,7 +132,7 @@ export default function LoginPage() {
                     onChange={(e) => setPhone(e.target.value)}
                   />
                   <div className="absolute right-4 text-slate-400">
-                    <span className="material-symbols-outlined">phone_iphone</span>
+                    <Smartphone className="w-5 h-5 mx-auto" />
                   </div>
                 </div>
               </div>
@@ -147,7 +148,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
               >
-                <span className="material-symbols-outlined text-xl">send</span>
+                <Send className="w-5 h-5 mx-auto" />
                 <span>{loading ? '...שולחת קוד' : 'שלחו לי קוד אימות'}</span>
               </button>
 
@@ -157,14 +158,25 @@ export default function LoginPage() {
                 <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
               </div>
 
-              {/* Bouton “magic link” – pour l’instant décoratif, on garde le style Stitch */}
+              {/* Bouton Google Login */}
               <button
                 type="button"
-                className="w-full bg-white border-2 border-[#91006A]/20 hover:border-[#91006A] text-[#91006A] font-semibold h-14 transition-all flex items-center justify-center gap-2 rounded-lg"
-                onClick={() => alert('ממש בקרוב!')}
+                className="w-full bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold h-14 transition-all flex items-center justify-center gap-2 rounded-lg"
+                onClick={async () => {
+                  setError(null);
+                  try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                      provider: 'google',
+                      options: { redirectTo: `${window.location.origin}/auth/callback` }
+                    });
+                    if (error) setError(error.message);
+                  } catch (e: unknown) {
+                    setError(e instanceof Error ? e.message : 'שגיאה בלתי צפויה בהתחברות לגוגל');
+                  }
+                }}
               >
-                <span className="material-symbols-outlined text-xl">magic_button</span>
-                <span>התחברות באמצעות קישור קסם</span>
+                <span>התחברות עם חשבון גוגל</span>
+                <img src="/google-icon.svg" alt="Google" className="w-5 h-5 mr-2" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               </button>
             </form>
           ) : (
@@ -211,7 +223,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
               >
-                <span className="material-symbols-outlined">check_circle</span>
+                <CheckCircle className="w-5 h-5 mx-auto" />
                 <span>{loading ? '...מאמתת' : 'כניסה'}</span>
               </button>
 

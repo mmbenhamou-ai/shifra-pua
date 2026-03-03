@@ -1,5 +1,6 @@
 'use client';
 
+import { Bell, BellOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function PushNotificationManager() {
@@ -88,7 +89,7 @@ export default function PushNotificationManager() {
       <div>
         <div className="flex items-center gap-2">
           <div className="size-8 rounded-full bg-[#91006A]/10 text-[#91006A] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[18px]">{subscription ? 'notifications_active' : 'notifications_off'}</span>
+            {subscription ? <Bell className="w-5 h-5 mx-auto" /> : <BellOff className="w-5 h-5 mx-auto" />}
           </div>
           <span className="font-semibold text-[#403728]">התראות מיידיות (Push)</span>
         </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight, Settings, Thermometer, HelpCircle, ChevronLeft, Info } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getSessionOrDevBypass, DEV_BYPASS_USER_ID } from '@/lib/auth-dev';
@@ -36,11 +37,11 @@ export default async function ProfilePage() {
     >
       <header className="flex items-center bg-white p-4 border-b border-[#91006A]/10">
         <a href={backHref} className="text-[#91006A] p-2 rounded-full hover:bg-[#91006A]/5">
-          <span className="material-symbols-outlined">arrow_forward</span>
+          <ArrowRight className="w-5 h-5" />
         </a>
         <h1 className="text-xl font-bold flex-1 text-center text-[#403728]">פרופיל</h1>
         <Link href={backHref} className="text-[#403728] p-2">
-          <span className="material-symbols-outlined">settings</span>
+          <Settings className="w-5 h-5" />
         </Link>
       </header>
 
@@ -85,7 +86,7 @@ export default async function ProfilePage() {
 
         <section className="space-y-3">
           <div className="flex items-center gap-3 pb-2 pt-2 border-t border-[#91006A]/10 mt-6">
-            <span className="material-symbols-outlined text-[#91006A] text-2xl">device_thermostat</span>
+            <Thermometer className="text-[#91006A] text-2xl" />
             <h2 className="text-xl font-bold text-[#403728]">נוטיפיקציות דפדפן</h2>
           </div>
           <PushNotificationManager />
@@ -98,11 +99,11 @@ export default async function ProfilePage() {
           >
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-[#91006A]/10 flex items-center justify-center text-[#91006A]">
-                <span className="material-symbols-outlined">help_center</span>
+                <HelpCircle className="w-5 h-5" />
               </div>
               <span className="font-semibold text-[#403728]">מדריך ומרכז עזרה</span>
             </div>
-            <span className="material-symbols-outlined text-[#403728]/40">chevron_left</span>
+            <ChevronLeft className="text-[#403728]/40" />
           </Link>
 
           <Link
@@ -111,11 +112,11 @@ export default async function ProfilePage() {
           >
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-[#91006A]/10 flex items-center justify-center text-[#91006A]">
-                <span className="material-symbols-outlined">info</span>
+                <Info className="w-5 h-5" />
               </div>
               <span className="font-semibold text-[#403728]">אודות שפרה ופועה</span>
             </div>
-            <span className="material-symbols-outlined text-[#403728]/40">chevron_left</span>
+            <ChevronLeft className="text-[#403728]/40" />
           </Link>
         </section>
         <div className="pt-4">

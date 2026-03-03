@@ -1,5 +1,6 @@
 'use client';
 
+import { User, Smartphone, MapPin, Map, FileText, ChefHat, Truck, AlertCircle, CheckCircle, RefreshCw, Save } from 'lucide-react';
 import { useRef, useState, useTransition } from 'react';
 import { updateProfile } from './actions';
 
@@ -71,7 +72,7 @@ export default function ProfileForm({ user }: { user: User }) {
               placeholder="שם פרטי ושם משפחה"
               className={inputClass}
             />
-            <div className={iconClass}><span className="material-symbols-outlined">person</span></div>
+            <div className={iconClass}><User className="w-5 h-5" /></div>
           </div>
         </div>
 
@@ -85,7 +86,7 @@ export default function ProfileForm({ user }: { user: User }) {
               defaultValue={user.phone}
               className={inputClass + ' text-left bg-slate-100 text-slate-500 border-transparent'}
             />
-            <div className={iconClass}><span className="material-symbols-outlined">phone_iphone</span></div>
+            <div className={iconClass}><Smartphone className="w-5 h-5" /></div>
           </div>
           <input type="hidden" name="phone" value={user.phone} />
         </div>
@@ -99,7 +100,7 @@ export default function ProfileForm({ user }: { user: User }) {
               placeholder="רחוב, מספר, עיר"
               className={inputClass}
             />
-            <div className={iconClass}><span className="material-symbols-outlined">location_on</span></div>
+            <div className={iconClass}><MapPin className="w-5 h-5" /></div>
           </div>
         </div>
 
@@ -112,7 +113,7 @@ export default function ProfileForm({ user }: { user: User }) {
               placeholder="שכונה"
               className={inputClass}
             />
-            <div className={iconClass}><span className="material-symbols-outlined">map</span></div>
+            <div className={iconClass}><Map className="w-5 h-5" /></div>
           </div>
         </div>
 
@@ -127,7 +128,7 @@ export default function ProfileForm({ user }: { user: User }) {
               className="block w-full border-slate-200 bg-slate-50 pl-4 pr-12 py-3 transition-all text-right placeholder:text-slate-400 rounded-lg focus:ring-2 focus:ring-[#91006A] focus:border-[#91006A] resize-none"
             />
             <div className={`absolute top-3 right-4 text-slate-400 flex items-center`}>
-              <span className="material-symbols-outlined">notes</span>
+              <FileText className="w-5 h-5" />
             </div>
           </div>
         </div>
@@ -140,7 +141,7 @@ export default function ProfileForm({ user }: { user: User }) {
 
           <label className="flex items-center gap-4 bg-white p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100 select-none">
             <div className="flex items-center justify-center rounded-full bg-[#91006A]/10 text-[#91006A] shrink-0 size-10">
-              <span className="material-symbols-outlined">soup_kitchen</span>
+              <ChefHat className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <p className="text-base font-semibold text-slate-800">עדכונים על בישול</p>
@@ -155,7 +156,7 @@ export default function ProfileForm({ user }: { user: User }) {
 
           <label className="flex items-center gap-4 bg-white p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100 select-none">
             <div className="flex items-center justify-center rounded-full bg-[#91006A]/10 text-[#91006A] shrink-0 size-10">
-              <span className="material-symbols-outlined">local_shipping</span>
+              <Truck className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <p className="text-base font-semibold text-slate-800">עדכונים על משלוחים</p>
@@ -172,13 +173,13 @@ export default function ProfileForm({ user }: { user: User }) {
         {/* הודעות */}
         {error && (
           <div className="flex items-center gap-2 rounded-xl bg-red-50 p-4 border border-red-100 text-red-700">
-            <span className="material-symbols-outlined">error</span>
+            <AlertCircle className="w-5 h-5" />
             <p className="text-sm font-medium">{error}</p>
           </div>
         )}
         {success && (
           <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-4 border border-emerald-100 text-emerald-700 animate-[fadeIn_0.3s_ease-out]">
-            <span className="material-symbols-outlined">check_circle</span>
+            <CheckCircle className="w-5 h-5" />
             <p className="text-sm font-medium">הפרטים נשמרו בהצלחה</p>
           </div>
         )}
@@ -188,7 +189,7 @@ export default function ProfileForm({ user }: { user: User }) {
           disabled={isPending}
           className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-xl mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <span className="material-symbols-outlined text-xl">{isPending ? 'sync' : 'save'}</span>
+          {isPending ? <RefreshCw className="w-5 h-5 mx-auto animate-spin" /> : <Save className="w-5 h-5 mx-auto" />}
           <span>{isPending ? '...שומרת' : 'שמירת שינויים'}</span>
         </button>
       </form>

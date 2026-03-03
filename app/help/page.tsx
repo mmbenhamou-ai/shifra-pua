@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight, Route, HelpCircle, Headset } from 'lucide-react';
 import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import { redirect } from 'next/navigation';
 
@@ -77,7 +78,7 @@ export default async function HelpPage() {
     <div className="min-h-screen bg-[#f8f5f8] pb-24 font-sans text-[#403728]" dir="rtl">
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-[#91006A]/10 px-4 h-16 flex items-center justify-between">
         <Link href={backHref} className="text-[#91006A] p-2 hover:bg-[#91006A]/5 rounded-full transition-colors">
-          <span className="material-symbols-outlined">arrow_forward</span>
+          <ArrowRight className="w-5 h-5" />
         </Link>
         <h1 className="text-xl font-extrabold text-[#91006A]">{roleData.title}</h1>
         <div className="w-10"></div>
@@ -88,7 +89,7 @@ export default async function HelpPage() {
         {/* זרימת עבודה / איך זה עובד */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 mb-6">
-            <span className="material-symbols-outlined text-[#91006A] text-2xl">route</span>
+            <Route className="text-[#91006A] text-2xl" />
             <h2 className="text-xl font-bold text-[#403728]">איך זה עובד?</h2>
           </div>
 
@@ -100,9 +101,6 @@ export default async function HelpPage() {
                 </div>
                 <div className="bg-white p-4 rounded-2xl shadow-sm border border-[#91006A]/5 ml-2">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="size-10 rounded-xl bg-[#91006A]/10 text-[#91006A] flex items-center justify-center">
-                      <span className="material-symbols-outlined">{step.icon}</span>
-                    </div>
                     <h3 className="font-bold text-[#403728] text-lg">{step.title}</h3>
                   </div>
                   <p className="text-slate-600 text-sm leading-relaxed">{step.desc}</p>
@@ -115,7 +113,7 @@ export default async function HelpPage() {
         {/* שאלות נפוצות */}
         <section className="space-y-4 pt-4 border-t border-[#91006A]/10">
           <div className="flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-[#91006A] text-2xl">help_center</span>
+            <HelpCircle className="text-[#91006A] text-2xl" />
             <h2 className="text-xl font-bold text-[#403728]">שאלות נפוצות</h2>
           </div>
 
@@ -138,11 +136,11 @@ export default async function HelpPage() {
         {/* יצירת קשר */}
         <section className="pt-6">
           <div className="bg-gradient-to-br from-[#91006A] to-[#7a0059] rounded-3xl p-6 text-white text-center shadow-xl shadow-[#91006A]/20 relative overflow-hidden">
-            <span className="material-symbols-outlined absolute -left-4 -bottom-4 text-[120px] text-white/5 rotate-12 pointer-events-none">support_agent</span>
+            <Headset className="absolute -left-4 -bottom-4 text-[120px] text-white/5 rotate-12 pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center">
               <div className="size-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 border border-white/30">
-                <span className="material-symbols-outlined text-3xl">headset_mic</span>
+                <Headset className="text-3xl" />
               </div>
               <h3 className="font-bold text-xl mb-2">צריכה עזרה נוספת?</h3>
               <p className="text-white/80 text-sm mb-6 leading-relaxed text-balance">

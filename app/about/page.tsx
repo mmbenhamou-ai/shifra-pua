@@ -1,3 +1,4 @@
+import { ArrowRight, Share, Utensils, Heart, Mail, Home, Stethoscope, User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AboutPage() {
@@ -6,11 +7,11 @@ export default function AboutPage() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#91006A]/10">
         <div className="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="p-2 text-[#91006A] rounded-full hover:bg-[#91006A]/5">
-            <span className="material-symbols-outlined">arrow_forward</span>
+            <ArrowRight className="w-5 h-5" />
           </Link>
           <h1 className="text-lg font-bold text-[#91006A]">אודות</h1>
           <button type="button" className="p-2 text-[#91006A]">
-            <span className="material-symbols-outlined">share</span>
+            <Share className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -43,11 +44,11 @@ export default function AboutPage() {
             </p>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="p-4 rounded-2xl bg-[#f8f5f8] border border-[#91006A]/20 text-center">
-                <span className="material-symbols-outlined text-[#91006A] text-3xl mb-2 block">restaurant</span>
+                <Utensils className="text-[#91006A] text-3xl mb-2 block" />
                 <p className="text-sm font-bold text-[#403728]">ארוחות בוקר</p>
               </div>
               <div className="p-4 rounded-2xl bg-[#f8f5f8] border border-[#91006A]/20 text-center">
-                <span className="material-symbols-outlined text-[#91006A] text-3xl mb-2 block">volunteer_activism</span>
+                <Heart className="text-[#91006A] text-3xl mb-2 block" />
                 <p className="text-sm font-bold text-[#403728]">תמיכה רגשית</p>
               </div>
             </div>
@@ -61,14 +62,14 @@ export default function AboutPage() {
               href="/donate"
               className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold py-4 transition-all shadow-lg shadow-[#91006A]/25 flex items-center justify-center gap-2 rounded-lg"
             >
-              <span className="material-symbols-outlined">favorite</span>
+              <Heart className="w-5 h-5" />
               תרומה לפעילות הארגון
             </Link>
             <Link
               href="/help"
               className="w-full bg-[#91006A]/10 text-[#91006A] font-bold py-4 border border-[#91006A]/20 hover:bg-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
             >
-              <span className="material-symbols-outlined">mail</span>
+              <Mail className="w-5 h-5" />
               צרי קשר איתנו
             </Link>
           </div>
@@ -77,19 +78,19 @@ export default function AboutPage() {
       <footer className="sticky bottom-0 bg-[#f8f5f8] border-t border-[#91006A]/10 px-4 py-2">
         <nav className="flex justify-between items-center max-w-xl mx-auto">
           <Link href="/" className="flex flex-col items-center p-2 text-[#91006A]/60">
-            <span className="material-symbols-outlined">home</span>
+            <Home className="w-5 h-5" />
             <span className="text-[10px] mt-1">בית</span>
           </Link>
           <Link href="/donate" className="flex flex-col items-center p-2 text-[#91006A]/60">
-            <span className="material-symbols-outlined">restaurant</span>
+            <Utensils className="w-5 h-5" />
             <span className="text-[10px] mt-1">ארוחות</span>
           </Link>
           <Link href="/help" className="flex flex-col items-center p-2 text-[#91006A]/60">
-            <span className="material-symbols-outlined">medical_services</span>
+            <Stethoscope className="w-5 h-5" />
             <span className="text-[10px] mt-1">שירותים</span>
           </Link>
           <Link href="/profile" className="flex flex-col items-center p-2 text-[#91006A]/60">
-            <span className="material-symbols-outlined">person</span>
+            <User className="w-5 h-5" />
             <span className="text-[10px] mt-1">פרופיל</span>
           </Link>
         </nav>

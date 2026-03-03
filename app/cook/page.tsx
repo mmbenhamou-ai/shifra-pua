@@ -1,3 +1,4 @@
+import { Calendar } from 'lucide-react';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
 import { getSessionOrDevBypass } from '@/lib/auth-dev';
@@ -153,7 +154,7 @@ export default async function CookDashboard({
               className="px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
               style={{ backgroundColor: '#FFF7FB', color: 'var(--brand)', border: '1px solid #FBE4F0' }}
             >
-              <span className="material-symbols-outlined text-[13px]">calendar_month</span>
+              <Calendar className="text-[13px]" />
               סנכרון ליומן
             </a>
           </div>

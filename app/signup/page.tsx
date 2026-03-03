@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { registerUser } from './actions';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -8,31 +9,34 @@ import { registerUser } from './actions';
 type Role = 'beneficiary' | 'cook' | 'driver';
 type MainCategory = 'beneficiary' | 'volunteer' | null;
 
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google: any;
+  }
+}
+
 interface BeneficiaryData {
-  // Step 2 — infos perso
-  name: string;
+  first_name: string;
+  last_name: string;
   phone: string;
   email: string;
   address: string;
   neighborhood: string;
-  // Step 3 — foyer
   num_adults: string;
   num_children: string;
-  // Step 4 — préférences alimentaires
   is_vegetarian: boolean;
   spicy_level: string;
   cooking_notes: string;
-  // Step 5 — petits-déjeuners
   birth_date: string;
   start_date: string;
-  // Step 6 — Shabbat
   shabbat_friday: boolean;
   shabbat_saturday: boolean;
   shabbat_kashrut: string;
 }
 
 const EMPTY: BeneficiaryData = {
-  name: '', phone: '', email: '', address: '', neighborhood: '',
+  first_name: '', last_name: '', phone: '', email: '', address: '', neighborhood: '',
   num_adults: '2', num_children: '0',
   is_vegetarian: false, spicy_level: '0', cooking_notes: '',
   birth_date: '', start_date: '',
@@ -42,7 +46,6 @@ const EMPTY: BeneficiaryData = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const KASHRUT_OPTIONS = ['רגיל', 'חלק', 'מהדרין', 'בד"ץ'];
-
 const TOTAL_BENEFICIARY_STEPS = 7;
 
 function validatePhone(raw: string): boolean {
@@ -52,16 +55,85 @@ function validatePhone(raw: string): boolean {
 
 function inputCls(err: boolean) {
   return [
-    'w-full rounded-xl border px-3 py-3 text-right text-sm text-zinc-900 bg-white',
-    'placeholder:text-gray-400 focus:outline-none focus:ring-2',
-    err ? 'border-red-400 focus:ring-red-300' : 'border-[#F7D4E2] focus:ring-[var(--brand)]',
+    'form-input block w-full border bg-slate-50 h-14 px-4 transition-all text-right placeholder:text-slate-400 rounded-lg focus:ring-2 focus:ring-[#91006A] focus:outline-none',
+    err ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#91006A]'
   ].join(' ');
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function AddressAutocomplete({
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  onBlur: () => void;
+  placeholder: string;
+  className: string;
+}) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let autocomplete: google.maps.places.Autocomplete | null = null;
+    let listener: google.maps.MapsEventListener | null = null;
+    let checkInterval: NodeJS.Timeout;
+
+    const initAutocomplete = () => {
+      if (!inputRef.current || !window.google?.maps?.places) return false;
+
+      autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+        types: ['address'],
+        fields: ['formatted_address'],
+        componentRestrictions: { country: 'il' },
+      });
+
+      listener = autocomplete.addListener('place_changed', () => {
+        const place = autocomplete?.getPlace();
+        if (place?.formatted_address) {
+          onChange(place.formatted_address);
+        }
+      });
+      return true;
+    };
+
+    if (!initAutocomplete()) {
+      // If not ready, poll until the script is fully parsed
+      checkInterval = setInterval(() => {
+        if (initAutocomplete()) {
+          clearInterval(checkInterval);
+        }
+      }, 500);
+    }
+
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+      if (listener && window.google?.maps?.event) {
+        window.google.maps.event.removeListener(listener);
+      }
+    };
+  }, [onChange]);
+
   return (
-    <div className="flex flex-col items-end gap-1">
-      <label className="text-sm font-medium text-zinc-800">{label}</label>
+    <input
+      ref={inputRef}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      className={className}
+      autoComplete="off"
+    />
+  );
+}
+
+function Field({ label, children, optional = false }: { label: string; children: React.ReactNode, optional?: boolean }) {
+  return (
+    <div className="flex flex-col items-end gap-1.5 w-full">
+      <label className="text-sm font-medium text-slate-700">
+        {label} {optional && <span className="text-slate-400 font-normal">(אופציונלי)</span>}
+      </label>
       {children}
     </div>
   );
@@ -69,33 +141,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Err({ msg }: { msg: string | null }) {
   if (!msg) return null;
-  return <p className="mt-1 text-xs font-medium text-red-600">{msg}</p>;
-}
-
-// ─── Progress bar ─────────────────────────────────────────────────────────────
-
-function ProgressBar({ step, total }: { step: number; total: number }) {
-  const pct = Math.round(((step - 1) / (total - 1)) * 100);
-  return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs" style={{ color: '#7C365F' }}>
-        <span>שלב {step} מתוך {total}</span>
-        <span>{pct}%</span>
-      </div>
-      <div className="h-2 w-full rounded-full bg-[#FBE4F0]">
-        <div
-          className="h-2 rounded-full transition-all duration-300"
-          style={{ width: `${pct}%`, backgroundColor: 'var(--brand)' }}
-        />
-      </div>
-    </div>
-  );
+  return <p className="mt-1 text-xs font-medium text-red-600 w-full text-right">{msg}</p>;
 }
 
 // ─── Nav buttons ──────────────────────────────────────────────────────────────
 
 function NavButtons({
-  onBack, onNext, nextLabel = 'הבא →', nextDisabled = false, pending = false,
+  onBack, onNext, nextLabel = 'המשך', nextDisabled = false, pending = false,
 }: {
   onBack?: () => void;
   onNext?: () => void;
@@ -104,11 +156,10 @@ function NavButtons({
   pending?: boolean;
 }) {
   return (
-    <div className="flex gap-3 pt-2">
+    <div className="flex gap-4 pt-4 mt-2">
       {onBack && (
         <button type="button" onClick={onBack}
-          className="min-h-[52px] flex-1 rounded-full border text-sm font-semibold transition"
-          style={{ borderColor: '#F7D4E2', color: 'var(--brand)', backgroundColor: '#fff' }}>
+          className="flex-1 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold h-14 transition-all flex items-center justify-center gap-2 rounded-lg">
           ← חזרה
         </button>
       )}
@@ -116,47 +167,86 @@ function NavButtons({
         type={onNext ? 'button' : 'submit'}
         onClick={onNext}
         disabled={nextDisabled || pending}
-        className="min-h-[52px] flex-[2] rounded-full text-sm font-semibold text-white transition disabled:opacity-40"
-        style={{ backgroundColor: 'var(--brand)' }}>
-        {pending ? 'שולחת...' : nextLabel}
+        className="flex-[2] bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+        {pending ? '...שולחת' : nextLabel}
       </button>
     </div>
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+function ProgressBar({ step, total }: { step: number; total: number }) {
+  const pct = Math.round(((step - 1) / (total - 1)) * 100);
+  return (
+    <div className="space-y-2 mb-2">
+      <div className="flex justify-between text-xs text-slate-500 font-medium">
+        <span>שלב {step} מתוך {total}</span>
+        <span>{pct}%</span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-300 bg-[#91006A]"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
-export default function SignupPage() {
-  const [role,      setRole]      = useState<Role | null>(null);
-  const [category,  setCategory]  = useState<MainCategory>(null);
-  // multi-select bénévole : cook + driver possibles simultanément
-  const [wantCook,   setWantCook]   = useState(false);
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between py-3 gap-3 border-b border-slate-100 last:border-0">
+      <span className="text-slate-500 shrink-0 text-sm">{label}</span>
+      <span className="font-medium text-slate-900 text-right text-sm px-4">{value}</span>
+    </div>
+  );
+}
+
+// ─── Main Component Wizard ────────────────────────────────────────────────────
+
+function SignupWizard() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [role, setRole] = useState<Role | null>(null);
+  const [category, setCategory] = useState<MainCategory>(null);
+
+  const [wantCook, setWantCook] = useState(false);
   const [wantDriver, setWantDriver] = useState(false);
-  const [notifCook,  setNotifCook]  = useState(true);
-  const [notifDrv,   setNotifDrv]   = useState(true);
+  const notifCook = true;
+  const notifDrv = true;
 
-  const [step,    setStep]    = useState(1);
-  const [data,    setData]    = useState<BeneficiaryData>(EMPTY);
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState<BeneficiaryData>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [pending, setPending] = useState(false);
-  const [error,   setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // simple cook/driver form values
-  const [cvName,   setCvName]   = useState('');
-  const [cvPhone,  setCvPhone]  = useState('');
-  const [cvAddr,   setCvAddr]   = useState('');
-  const [cvNeigh,  setCvNeigh]  = useState('');
+  const [cvFirstName, setCvFirstName] = useState('');
+  const [cvLastName, setCvLastName] = useState('');
+  const [cvPhone, setCvPhone] = useState('');
+  const [cvNeigh, setCvNeigh] = useState('');
   const [cvHasCar, setCvHasCar] = useState('false');
 
-  // Rôle effectif déterminé par les cases multi-select
+  // Auto-select type from URL
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'beneficiary' && step === 1 && category === null) {
+      setCategory('beneficiary');
+      setRole('beneficiary');
+      setStep(2); // On saute l'étape 1
+    } else if (type === 'volunteer' && step === 1 && category === null) {
+      setCategory('volunteer');
+      // On reste à l'étape 1 pour choisir le sous-type
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // On ne met que searchParams pour ne déclencher qu'au montage
+
   const effectiveRole: Role = wantCook ? 'cook' : 'driver';
   const alsoDriver = wantCook && wantDriver;
 
-  const set = (k: keyof BeneficiaryData, v: string | boolean) =>
-    setData((p) => ({ ...p, [k]: v }));
+  const set = (k: keyof BeneficiaryData, v: string | boolean) => setData((p) => ({ ...p, [k]: v }));
   const touch = (k: string) => setTouched((p) => ({ ...p, [k]: true }));
 
-  // ── Validators ──
   const phoneErr = useCallback(() => {
     if (!touched.phone) return null;
     if (!data.phone.trim()) return 'מספר טלפון הוא שדה חובה';
@@ -173,9 +263,8 @@ export default function SignupPage() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // ── Steps validity ──
   function step2Valid() {
-    return data.name.trim().length >= 2 && validatePhone(data.phone) && data.address.trim().length > 0;
+    return data.first_name.trim().length >= 2 && data.last_name.trim().length >= 2 && validatePhone(data.phone) && data.address.trim().length > 0;
   }
   function step3Valid() {
     return parseInt(data.num_adults) >= 1;
@@ -187,28 +276,27 @@ export default function SignupPage() {
     return data.shabbat_friday || data.shabbat_saturday;
   }
 
-  // ── Submit beneficiary ──
   async function submitBeneficiary() {
     setError(null);
     setPending(true);
     try {
       const fd = new FormData();
-      fd.append('role',             'beneficiary');
-      fd.append('name',             data.name);
-      fd.append('phone',            data.phone);
-      fd.append('email',            data.email);
-      fd.append('address',          data.address);
-      fd.append('neighborhood',     data.neighborhood);
-      fd.append('birth_date',       data.birth_date);
-      fd.append('start_date',       data.start_date);
-      fd.append('num_adults',       data.num_adults);
-      fd.append('num_children',     data.num_children);
-      fd.append('is_vegetarian',    data.is_vegetarian ? 'true' : 'false');
-      fd.append('spicy_level',      data.spicy_level);
-      fd.append('cooking_notes',    data.cooking_notes);
-      fd.append('shabbat_friday',   data.shabbat_friday   ? 'true' : 'false');
+      fd.append('role', 'beneficiary');
+      fd.append('name', `${data.first_name.trim()} ${data.last_name.trim()}`);
+      fd.append('phone', data.phone);
+      fd.append('email', data.email);
+      fd.append('address', data.address);
+      fd.append('neighborhood', data.neighborhood);
+      fd.append('birth_date', data.birth_date);
+      fd.append('start_date', data.start_date);
+      fd.append('num_adults', data.num_adults);
+      fd.append('num_children', data.num_children);
+      fd.append('is_vegetarian', data.is_vegetarian ? 'true' : 'false');
+      fd.append('spicy_level', data.spicy_level);
+      fd.append('cooking_notes', data.cooking_notes);
+      fd.append('shabbat_friday', data.shabbat_friday ? 'true' : 'false');
       fd.append('shabbat_saturday', data.shabbat_saturday ? 'true' : 'false');
-      fd.append('shabbat_kashrut',  data.shabbat_kashrut);
+      fd.append('shabbat_kashrut', data.shabbat_kashrut);
       await registerUser(fd);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'שגיאה בלתי צפויה');
@@ -216,19 +304,19 @@ export default function SignupPage() {
     }
   }
 
-  // ── Submit cook/driver ──
   async function submitVolunteer(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setTouched({ cvPhone: true });
-    if (!cvName.trim() || !validatePhone(cvPhone)) return;
+    setTouched({ cvPhone: true, cvFirstName: true, cvLastName: true });
+    if (!cvFirstName.trim() || !cvLastName.trim() || !validatePhone(cvPhone)) return;
     setError(null);
     setPending(true);
     try {
       const fd = new FormData(e.currentTarget);
       fd.set('role', effectiveRole);
-      fd.append('also_driver',    alsoDriver    ? 'true' : 'false');
-      fd.append('notif_cooking',  notifCook     ? 'true' : 'false');
-      fd.append('notif_delivery', notifDrv      ? 'true' : 'false');
+      fd.set('name', `${cvFirstName.trim()} ${cvLastName.trim()}`);
+      fd.append('also_driver', alsoDriver ? 'true' : 'false');
+      fd.append('notif_cooking', notifCook ? 'true' : 'false');
+      fd.append('notif_delivery', notifDrv ? 'true' : 'false');
       if (alsoDriver) fd.set('has_car', 'true');
       await registerUser(fd);
     } catch (e: unknown) {
@@ -237,131 +325,144 @@ export default function SignupPage() {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────────────────────────────────────
+  function handleBackGlobal() {
+    if (step === 1) {
+      router.replace('/');
+    } else if (step === 2 && searchParams.get('type') === 'beneficiary') {
+      router.replace('/');
+    } else if (step === 10 && searchParams.get('type') === 'volunteer') {
+      router.replace('/');
+    } else {
+      if (role === 'beneficiary' && step > 2) setStep(step - 1);
+      else if (role === 'beneficiary' && step === 2) setStep(1);
+      else if (step === 10) { setStep(1); setCategory('volunteer'); }
+    }
+  }
 
   return (
-    <div className="min-h-screen flex flex-col" dir="rtl"
-         style={{ background: 'linear-gradient(to bottom, #FFF7FB, #FBE4F0)' }}>
+    <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col my-auto relative z-10 mx-auto">
+      <div className="flex items-center p-4 justify-between border-b border-slate-100">
+        <button
+          type="button"
+          className="text-[#91006A] p-2 hover:bg-[#91006A]/10 rounded-full transition-colors font-bold"
+          onClick={handleBackGlobal}
+        >
+          ←
+        </button>
+        <h2 className="text-[#91006A] text-lg font-bold flex-1 text-center pr-8">
+          הרשמה מהירה
+        </h2>
+      </div>
 
-      <header className="w-full px-4 py-3 shadow-md" style={{ backgroundColor: 'var(--brand)' }}>
-        <h1 className="text-xl font-bold text-white text-right">שפרה ופועה — הרשמה</h1>
-      </header>
+      <main className="px-6 py-6 pb-12 flex flex-col gap-6">
 
-      <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 space-y-6">
-
-        {/* ── STEP 1 — יולדת vs מתנדבת ── */}
         {step === 1 && (
-          <div className="space-y-5">
-            <div className="space-y-1 text-right">
-              <h2 className="text-xl font-bold" style={{ color: 'var(--brand)' }}>ברוכה הבאה! 💛</h2>
-              <p className="text-sm text-zinc-500">ספרי לנו קצת עלייך</p>
+          <div className="space-y-6">
+            <div className="text-center space-y-2 mb-4">
+              <div className="w-16 h-16 bg-[#91006A]/10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-3xl">
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900">ברוכה הבאה!</h1>
+              <p className="text-slate-500">בחרי את סוג ההרשמה שלך</p>
             </div>
+
             <div className="flex flex-col gap-4">
-              {/* יולדת */}
               <button type="button"
-                onClick={() => { setCategory('beneficiary'); setRole('beneficiary'); }}
-                className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
+                onClick={() => { setCategory('beneficiary'); setRole('beneficiary'); setStep(2); }}
+                className="flex items-center justify-between rounded-2xl border-2 p-4 text-right transition hover:border-[#91006A]/40"
                 style={{
-                  borderColor:     category === 'beneficiary' ? 'var(--brand)' : '#F7D4E2',
+                  borderColor: category === 'beneficiary' ? 'var(--brand)' : '#F1F5F9',
                   backgroundColor: category === 'beneficiary' ? '#FFF7FB' : '#FFFFFF',
-                  boxShadow: category === 'beneficiary' ? '0 0 0 2px var(--brand)' : 'none',
                 }}>
-                <span className="text-3xl">👶</span>
-                <div className="flex flex-col items-end gap-0.5">
-                  <span className="text-lg font-bold text-zinc-900">יולדת</span>
-                  <span className="text-sm text-zinc-500">אני זקוקה לארוחות לאחר הלידה</span>
+                <span className="text-3xl bg-slate-50 w-12 h-12 flex items-center justify-center rounded-xl pointer-events-none"></span>
+                <div className="flex flex-col items-end gap-0.5 ml-4 flex-1">
+                  <span className="text-lg font-bold text-slate-900">יולדת</span>
+                  <span className="text-sm text-slate-500">אני זקוקה לארוחות לאחר הלידה</span>
                 </div>
               </button>
 
-              {/* מתנדבת */}
               <button type="button"
                 onClick={() => { setCategory('volunteer'); setRole(null); }}
-                className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
+                className="flex items-center justify-between rounded-2xl border-2 p-4 text-right transition hover:border-[#91006A]/40"
                 style={{
-                  borderColor:     category === 'volunteer' ? 'var(--brand)' : '#F7D4E2',
+                  borderColor: category === 'volunteer' ? 'var(--brand)' : '#F1F5F9',
                   backgroundColor: category === 'volunteer' ? '#FFF7FB' : '#FFFFFF',
-                  boxShadow: category === 'volunteer' ? '0 0 0 2px var(--brand)' : 'none',
                 }}>
-                <span className="text-3xl">💛</span>
-                <div className="flex flex-col items-end gap-0.5">
-                  <span className="text-lg font-bold text-zinc-900">מתנדבת</span>
-                  <span className="text-sm text-zinc-500">אני רוצה לעזור למשפחות</span>
+                <span className="text-3xl bg-slate-50 w-12 h-12 flex items-center justify-center rounded-xl pointer-events-none"></span>
+                <div className="flex flex-col items-end mr-4 flex-1">
+                  <span className="text-lg font-bold text-slate-900">מתנדבת</span>
+                  <span className="text-sm text-slate-500">אני רוצה לעזור למשפחות</span>
                 </div>
               </button>
             </div>
 
-            {/* Step 1b — multi-select bénévole */}
             {category === 'volunteer' && (
-              <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 space-y-3">
-                <p className="text-sm font-bold text-right" style={{ color: '#4A0731' }}>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-4 animate-in fade-in slide-in-from-top-2">
+                <p className="text-sm font-bold text-slate-800 text-right">
                   במה תרצי לעזור? (ניתן לבחור יותר מאחת)
                 </p>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {[
-                    { id: 'cook',   label: 'מבשלת',  emoji: '🍲', desc: 'לבשל ארוחות בבית',     val: wantCook,   set: setWantCook },
-                    { id: 'driver', label: 'מחלקת',  emoji: '🚗', desc: 'לחלק ארוחות לבתים',   val: wantDriver, set: setWantDriver },
+                    { id: 'cook', label: 'מבשלת', desc: 'לבשל ארוחות בבית', val: wantCook, set: setWantCook },
+                    { id: 'driver', label: 'מחלקת', desc: 'לחלק ארוחות לבתים', val: wantDriver, set: setWantDriver },
                   ].map((opt) => (
                     <button key={opt.id} type="button"
                       onClick={() => opt.set(!opt.val)}
-                      className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
+                      className="flex items-center justify-between rounded-xl border p-3 text-right bg-white transition shadow-sm hover:border-[#91006A]/30"
                       style={{
-                        borderColor:     opt.val ? 'var(--brand)' : '#F7D4E2',
-                        backgroundColor: opt.val ? '#FFF7FB' : '#FAFAFA',
+                        borderColor: opt.val ? 'var(--brand)' : '#E2E8F0',
+                        boxShadow: opt.val ? '0 0 0 1px var(--brand)' : '',
                       }}>
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                             style={{ borderColor: opt.val ? 'var(--brand)' : '#D1D5DB', backgroundColor: opt.val ? 'var(--brand)' : '#fff' }}>
-                          {opt.val && <span className="text-white text-xs font-bold">✓</span>}
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-6 w-6 items-center justify-center rounded border transition"
+                          style={{ borderColor: opt.val ? 'var(--brand)' : '#CBD5E1', backgroundColor: opt.val ? 'var(--brand)' : '#fff' }}>
+                          {opt.val && <span className="text-white text-xs font-bold line-height-none mt-0.5">✓</span>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-right">
+                      <div className="flex items-center gap-3 text-right flex-1 justify-end">
                         <div>
-                          <span className="text-sm font-semibold text-zinc-900">{opt.label}</span>
-                          <p className="text-xs text-zinc-500">{opt.desc}</p>
+                          <span className="text-sm font-bold text-slate-900">{opt.label}</span>
+                          <p className="text-xs text-slate-500 mt-0.5">{opt.desc}</p>
                         </div>
-                        <span className="text-xl">{opt.emoji}</span>
                       </div>
                     </button>
                   ))}
                 </div>
+
+                <NavButtons
+                  nextLabel="המשך להרשמה"
+                  nextDisabled={!wantCook && !wantDriver}
+                  onNext={() => setStep(10)}
+                />
               </div>
             )}
 
-            <NavButtons
-              nextLabel="המשך ←"
-              nextDisabled={
-                !category ||
-                (category === 'volunteer' && !wantCook && !wantDriver)
-              }
-              onNext={() => {
-                if (category === 'beneficiary') setStep(2);
-                else setStep(10);
-              }}
-            />
           </div>
         )}
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            WIZARD יולדת — étapes 2–7
-        ══════════════════════════════════════════════════════════════════════ */}
 
         {role === 'beneficiary' && step >= 2 && step <= 7 && (
           <ProgressBar step={step - 1} total={TOTAL_BENEFICIARY_STEPS - 1} />
         )}
 
-        {/* ── STEP 2 — infos personnelles ── */}
+        {/* STEP 2 */}
         {role === 'beneficiary' && step === 2 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>פרטים אישיים</h2>
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-right text-[#91006A]">פרטים אישיים</h2>
 
-            <Field label="שם מלא *">
-              <input value={data.name} onChange={(e) => set('name', e.target.value)}
-                onBlur={() => touch('name')} placeholder="שם פרטי ושם משפחה"
-                className={inputCls(!!(touched.name && data.name.trim().length < 2))} />
-              <Err msg={touched.name && data.name.trim().length < 2 ? 'שם חייב להכיל לפחות 2 תווים' : null} />
-            </Field>
+            <div className="flex gap-3 w-full">
+              <Field label="שם פרטי *">
+                <input value={data.first_name} onChange={(e) => set('first_name', e.target.value)}
+                  onBlur={() => touch('first_name')} placeholder="שם פרטי"
+                  className={inputCls(!!(touched.first_name && data.first_name.trim().length < 2))} />
+                <Err msg={touched.first_name && data.first_name.trim().length < 2 ? 'לפחות 2 תווים' : null} />
+              </Field>
+
+              <Field label="שם משפחה *">
+                <input value={data.last_name} onChange={(e) => set('last_name', e.target.value)}
+                  onBlur={() => touch('last_name')} placeholder="שם משפחה"
+                  className={inputCls(!!(touched.last_name && data.last_name.trim().length < 2))} />
+                <Err msg={touched.last_name && data.last_name.trim().length < 2 ? 'לפחות 2 תווים' : null} />
+              </Field>
+            </div>
 
             <Field label="מספר טלפון *">
               <input value={data.phone} onChange={(e) => set('phone', e.target.value)}
@@ -370,107 +471,99 @@ export default function SignupPage() {
               {phoneErr()
                 ? <Err msg={phoneErr()} />
                 : touched.phone && validatePhone(data.phone)
-                  ? <p className="mt-1 text-xs font-medium text-green-600">✓ מספר תקין</p>
+                  ? <p className="mt-1 text-xs font-medium text-emerald-600 w-full text-right">✓ מספר תקין</p>
                   : null}
             </Field>
 
             <Field label="כתובת מגורים *">
-              <input value={data.address} onChange={(e) => set('address', e.target.value)}
-                onBlur={() => touch('address')} placeholder="רחוב, מספר, עיר"
+              <AddressAutocomplete
+                value={data.address}
+                onChange={(addr) => set('address', addr)}
+                onBlur={() => touch('address')}
+                placeholder="רחוב, מספר, עיר"
                 className={inputCls(!!(touched.address && !data.address.trim()))} />
               <Err msg={touched.address && !data.address.trim() ? 'כתובת היא שדה חובה' : null} />
             </Field>
 
-            <Field label="שכונה">
+            <Field label="שכונה" optional>
               <input value={data.neighborhood} onChange={(e) => set('neighborhood', e.target.value)}
-                placeholder="שכונה / אזור (אופציונלי)" className={inputCls(false)} />
+                placeholder="שכונה / אזור" className={inputCls(false)} />
             </Field>
 
-            <Field label="אימייל (אופציונלי)">
+            <Field label="אימייל" optional>
               <input type="email" dir="ltr" value={data.email}
                 onChange={(e) => set('email', e.target.value)}
                 placeholder="example@gmail.com" className={inputCls(false)} />
-              <p className="mt-1 text-xs text-zinc-400 text-right">לא חובה — לקבלת עדכונים במייל</p>
+              <p className="mt-1 text-xs text-slate-400 text-right w-full">לקבלת עדכונים חשובים במייל</p>
             </Field>
 
-            <Field label="תאריך לידת התינוק/ת">
-              <input type="date" dir="ltr" value={data.birth_date}
-                onChange={(e) => set('birth_date', e.target.value)} className={inputCls(false)} />
+            <Field label="תאריך לידת התינוק/ת" optional>
+              <div className="relative w-full">
+                <input type="date" dir="ltr" value={data.birth_date}
+                  onChange={(e) => set('birth_date', e.target.value)} className={inputCls(false) + " text-right placeholder-transparent"} />
+              </div>
             </Field>
 
-            <NavButtons onBack={() => setStep(1)} onNext={() => { setTouched({ name: true, phone: true, address: true }); if (step2Valid()) setStep(3); }} nextDisabled={!step2Valid()} />
+            <NavButtons onBack={handleBackGlobal} onNext={() => { setTouched({ first_name: true, last_name: true, phone: true, address: true }); if (step2Valid()) setStep(3); }} nextDisabled={!step2Valid()} />
           </div>
         )}
 
-        {/* ── STEP 3 — composition du foyer ── */}
         {role === 'beneficiary' && step === 3 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>הרכב המשפחה</h2>
-            <p className="text-sm text-zinc-500 text-right">כדי לדעת כמה מנות להכין</p>
+          <div className="space-y-6">
+            <div className="text-right space-y-1">
+              <h2 className="text-xl font-bold text-[#91006A]">הרכב המשפחה</h2>
+              <p className="text-sm text-slate-500">כדי שנדע כמה מנות להכין</p>
+            </div>
 
             <Field label="מספר מבוגרים *">
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                min="1"
-                max="10"
-                dir="ltr"
+              <input type="text" inputMode="numeric" pattern="[0-9]*" min="1" max="10" dir="ltr"
                 value={data.num_adults} onChange={(e) => set('num_adults', e.target.value)}
-                className={inputCls(false)} />
+                className={inputCls(false) + " text-center"} />
             </Field>
 
             <Field label="מספר ילדים">
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                min="0"
-                max="15"
-                dir="ltr"
+              <input type="text" inputMode="numeric" pattern="[0-9]*" min="0" max="15" dir="ltr"
                 value={data.num_children} onChange={(e) => set('num_children', e.target.value)}
-                className={inputCls(false)} />
+                className={inputCls(false) + " text-center"} />
             </Field>
 
             <NavButtons onBack={() => setStep(2)} onNext={() => { if (step3Valid()) setStep(4); }} nextDisabled={!step3Valid()} />
           </div>
         )}
 
-        {/* ── STEP 4 — préférences alimentaires ── */}
         {role === 'beneficiary' && step === 4 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>העדפות אכילה</h2>
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-right text-[#91006A]">העדפות אכילה</h2>
 
-            {/* Végétarien */}
-              <button type="button"
+            <button type="button"
               onClick={() => set('is_vegetarian', !data.is_vegetarian)}
-              className="flex w-full items-center justify-between rounded-2xl border-2 p-4 transition"
+              className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition shadow-sm hover:border-[#91006A]/30"
               style={{
-                borderColor:     data.is_vegetarian ? 'var(--brand)' : '#F7D4E2',
-                backgroundColor: data.is_vegetarian ? '#FFF7FB' : '#fff',
+                borderColor: data.is_vegetarian ? 'var(--brand)' : '',
+                boxShadow: data.is_vegetarian ? '0 0 0 1px var(--brand)' : '',
               }}>
-              <span className="text-2xl">🥗</span>
-              <div className="text-right">
-                <p className="font-semibold text-zinc-900">צמחוני</p>
-                <p className="text-xs text-zinc-500">ללא בשר ועוף</p>
+              <span className="text-3xl bg-slate-50 w-12 h-12 flex items-center justify-center rounded-xl pointer-events-none"></span>
+              <div className="text-right flex-1 mr-4">
+                <p className="font-bold text-slate-900">צמחוני</p>
+                <p className="text-sm text-slate-500">ללא בשר ועוף</p>
               </div>
             </button>
 
-            {/* Épices */}
-            <div className="space-y-2 text-right">
-              <p className="text-sm font-medium text-zinc-800">רמת חריפות</p>
+            <div className="space-y-3 pt-2">
+              <p className="text-sm font-medium text-slate-700 text-right w-full">רמת חריפות</p>
               <div className="flex gap-2">
                 {[
-                  { val: '0', label: 'לא חריף 😌' },
-                  { val: '1', label: 'קצת 🌶' },
-                  { val: '2', label: 'חריף 🔥' },
+                  { val: '0', label: 'לא חריף' },
+                  { val: '1', label: 'קצת חריף' },
+                  { val: '2', label: 'ממש חריף' },
                 ].map((opt) => (
                   <button key={opt.val} type="button"
                     onClick={() => set('spicy_level', opt.val)}
-                    className="flex-1 rounded-full py-2 text-sm font-medium transition"
+                    className="flex-1 rounded-lg py-3 text-sm font-bold transition border my-auto block border-slate-200"
                     style={{
-                      backgroundColor: data.spicy_level === opt.val ? 'var(--brand)' : '#FBE4F0',
-                      color:           data.spicy_level === opt.val ? '#fff'    : 'var(--brand)',
+                      backgroundColor: data.spicy_level === opt.val ? 'var(--brand)' : '#fff',
+                      borderColor: data.spicy_level === opt.val ? 'var(--brand)' : '#E2E8F0',
+                      color: data.spicy_level === opt.val ? '#fff' : '#475569',
                     }}>
                     {opt.label}
                   </button>
@@ -478,38 +571,42 @@ export default function SignupPage() {
               </div>
             </div>
 
-            {/* Notes cuisine */}
-            <Field label="הערות למטבח (אלרגיות, הגבלות...)">
+            <Field label="הערות למטבח (אלרגיות, הגבלות...)" optional>
               <textarea value={data.cooking_notes}
                 onChange={(e) => set('cooking_notes', e.target.value)}
-                placeholder="לדוגמה: ללא כמון, ללא פלפל שחור, אלרגיה לאגוזים"
+                placeholder="לדוגמה: ללא כמון, ללא פלפל, אלרגיה לאגוזים"
                 rows={3}
-                className={inputCls(false) + ' resize-none'} />
+                className={inputCls(false) + ' resize-none pt-4 h-auto pb-4 appearance-none rounded-2xl'} />
             </Field>
 
             <NavButtons onBack={() => setStep(3)} onNext={() => setStep(5)} />
           </div>
         )}
 
-        {/* ── STEP 5 — petits-déjeuners (dates) ── */}
         {role === 'beneficiary' && step === 5 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>ארוחות בוקר</h2>
-            <p className="text-sm text-zinc-500 text-right">
-              תקבלי ארוחת בוקר כל יום לאחר האישור. בחרי מאיזה תאריך להתחיל.
-            </p>
+          <div className="space-y-6">
+            <div className="text-right space-y-1 block w-full">
+              <h2 className="text-xl font-bold text-[#91006A]">ארוחות בוקר עשירות</h2>
+              <p className="text-sm text-slate-500 max-w-[280px] ml-auto">
+                תקבלי ארוחת בוקר כל יום במשך השבועיים שלאחר הלידה. בחרי מאיזה תאריך להתחיל.
+              </p>
+            </div>
 
             <Field label="תאריך התחלה *">
-              <input type="date" dir="ltr" min={today}
-                value={data.start_date}
-                onChange={(e) => set('start_date', e.target.value)}
-                onBlur={() => touch('start_date')}
-                className={inputCls(!!(touched.start_date && !step5Valid()))} />
+              <div className="relative w-full">
+                <input type="date" dir="ltr" min={today}
+                  value={data.start_date}
+                  onChange={(e) => set('start_date', e.target.value)}
+                  onBlur={() => touch('start_date')}
+                  className={inputCls(!!(touched.start_date && !step5Valid())) + " text-right font-medium text-slate-800 placeholder-transparent"} />
+              </div>
               <Err msg={touched.start_date && !data.start_date ? 'נא לבחור תאריך התחלה' : null} />
+
               {data.start_date && (
-                <p className="mt-1 text-xs text-zinc-400">
-                  ×14 ימים עד {new Date(new Date(data.start_date).getTime() + 14 * 86400000).toLocaleDateString('he-IL')}
-                </p>
+                <div className="w-full mt-3 bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-right">
+                  <p className="text-sm text-indigo-800 font-medium">סך הכל 14 ימים של פינוק!</p>
+                  <p className="text-xs text-indigo-600 mt-1">עד {new Date(new Date(data.start_date).getTime() + 14 * 86400000).toLocaleDateString('he-IL')}</p>
+                </div>
               )}
             </Field>
 
@@ -517,42 +614,50 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* ── STEP 6 — Shabbat ── */}
         {role === 'beneficiary' && step === 6 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>ארוחות שבת</h2>
-            <p className="text-sm text-zinc-500 text-right">בחרי אילו ארוחות שבת תרצי לקבל</p>
+          <div className="space-y-6">
+            <div className="text-right space-y-1 block w-full">
+              <h2 className="text-xl font-bold text-[#91006A]">ארוחות שבת</h2>
+              <p className="text-sm text-slate-500">בחרי אילו ארוחות שבת תרצי לקבל במשך התקופה</p>
+            </div>
 
-            {[
-              { key: 'shabbat_friday'   as const, label: 'ליל שבת (יום שישי)',  emoji: '🕯️' },
-              { key: 'shabbat_saturday' as const, label: 'שבת צהריים',          emoji: '☀️' },
-            ].map((opt) => (
-              <button key={opt.key} type="button"
-                onClick={() => set(opt.key, !data[opt.key])}
-                className="flex w-full items-center justify-between rounded-2xl border-2 p-4 transition"
-                style={{
-                  borderColor:     data[opt.key] ? 'var(--brand)' : '#F7D4E2',
-                  backgroundColor: data[opt.key] ? '#FFF7FB' : '#fff',
-                }}>
-                <span className="text-2xl">{opt.emoji}</span>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-zinc-900">{opt.label}</p>
-                  {data[opt.key] && <span className="text-[var(--brand)] text-xl">✓</span>}
-                </div>
-              </button>
-            ))}
+            <div className="flex flex-col gap-3">
+              {[
+                { key: 'shabbat_friday' as const, label: 'ליל שבת (ערב)' },
+                { key: 'shabbat_saturday' as const, label: 'שבת בבוקר/צהריים' },
+              ].map((opt) => (
+                <button key={opt.key} type="button"
+                  onClick={() => set(opt.key, !data[opt.key])}
+                  className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition shadow-sm hover:border-[#91006A]/30"
+                  style={{
+                    borderColor: data[opt.key] ? 'var(--brand)' : '',
+                    boxShadow: data[opt.key] ? '0 0 0 1px var(--brand)' : '',
+                  }}>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-slate-900 text-[15px]">{opt.label}</p>
+                    <div className="w-6 h-6 rounded-full border flex items-center justify-center transition-colors ml-2"
+                      style={{
+                        borderColor: data[opt.key] ? 'var(--brand)' : '#CBD5E1',
+                        backgroundColor: data[opt.key] ? 'var(--brand)' : 'transparent'
+                      }}>
+                      {data[opt.key] && <span className="text-white text-xs font-bold leading-none">✓</span>}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
 
-            {/* Kashrut */}
-            <div className="space-y-2 text-right">
-              <p className="text-sm font-medium text-zinc-800">כשרות</p>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-3 pt-2 text-right">
+              <p className="text-sm font-medium text-slate-800">כשרות מינימלית נדרשת</p>
+              <div className="grid grid-cols-2 gap-3">
                 {KASHRUT_OPTIONS.map((k) => (
                   <button key={k} type="button"
                     onClick={() => set('shabbat_kashrut', k)}
-                    className="rounded-full py-2 text-sm font-medium transition"
+                    className="rounded-lg py-2.5 text-sm font-bold transition border"
                     style={{
-                      backgroundColor: data.shabbat_kashrut === k ? 'var(--brand)' : '#FBE4F0',
-                      color:           data.shabbat_kashrut === k ? '#fff'    : 'var(--brand)',
+                      backgroundColor: data.shabbat_kashrut === k ? 'var(--brand)' : '#fff',
+                      borderColor: data.shabbat_kashrut === k ? 'var(--brand)' : '#E2E8F0',
+                      color: data.shabbat_kashrut === k ? '#fff' : '#475569',
                     }}>
                     {k}
                   </button>
@@ -564,24 +669,19 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* ── STEP 7 — récapitulatif + confirmation ── */}
         {role === 'beneficiary' && step === 7 && (
-          <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>סיכום הרשמה</h2>
-            <p className="text-sm text-zinc-500 text-right">בדקי שהפרטים נכונים לפני השליחה</p>
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-right text-[#91006A]">סיכום הבקשה לחבילת לידה</h2>
 
-            <div className="rounded-2xl border border-[#F7D4E2] bg-white divide-y divide-[#FBE4F0] text-right text-sm">
-              <Row label="שם"          value={data.name} />
-              <Row label="טלפון"       value={data.phone} />
-              {data.email && <Row label="אימייל" value={data.email} />}
-              <Row label="כתובת"       value={[data.address, data.neighborhood].filter(Boolean).join(' · ')} />
-              <Row label="הרכב"        value={`${data.num_adults} מבוגרים, ${data.num_children} ילדים`} />
-              <Row label="תזונה"       value={data.is_vegetarian ? 'צמחוני' : 'רגיל'} />
-              <Row label="חריפות"      value={['לא חריף', 'קצת חריף', 'חריף'][parseInt(data.spicy_level)]} />
-              {data.cooking_notes && <Row label="הערות" value={data.cooking_notes} />}
-              <Row label="התחלה"       value={data.start_date ? new Date(data.start_date).toLocaleDateString('he-IL') : '—'} />
-              <Row label="שבת"         value={[data.shabbat_friday && 'ליל שבת', data.shabbat_saturday && 'צהריים'].filter(Boolean).join(' + ') || '—'} />
-              <Row label="כשרות"       value={data.shabbat_kashrut} />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden divide-y divide-slate-100 flex flex-col items-stretch">
+              <Row label="שם" value={`${data.first_name} ${data.last_name}`} />
+              <Row label="טלפון" value={data.phone} />
+              <Row label="הרכב" value={`${data.num_adults} מבוגרים, ${data.num_children} ילדים`} />
+              <Row label="תזונה" value={data.is_vegetarian ? 'צמחוני' : 'רגיל'} />
+              <Row label="התחלה" value={data.start_date ? new Date(data.start_date).toLocaleDateString('he-IL') : '—'} />
+              {(data.shabbat_friday || data.shabbat_saturday) && (
+                <Row label="שבתות" value={`${data.shabbat_friday ? 'ליל שבת' : ''} ${data.shabbat_friday && data.shabbat_saturday ? '+' : ''} ${data.shabbat_saturday ? 'בוקר' : ''}`} />
+              )}
             </div>
 
             {error && (
@@ -592,7 +692,7 @@ export default function SignupPage() {
 
             <NavButtons
               onBack={() => setStep(6)}
-              nextLabel="אישור ושליחה ✓"
+              nextLabel="אישור ושליחה מלאה ✓"
               onNext={submitBeneficiary}
               pending={pending}
             />
@@ -607,25 +707,30 @@ export default function SignupPage() {
           <form onSubmit={submitVolunteer} noValidate className="space-y-5">
             <input type="hidden" name="role" value={effectiveRole} />
 
-            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>
-              פרטים אישיים —{' '}
+            <h2 className="text-xl font-bold text-right text-[#91006A]">
+              פרטי התנדבות —{' '}
               {alsoDriver ? 'מבשלת ומחלקת' : wantCook ? 'מבשלת' : 'מחלקת'}
             </h2>
 
-            {/* תגיות תפקיד */}
-            <div className="flex gap-2 justify-end flex-wrap">
-              {wantCook   && <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>🍲 מבשלת</span>}
-              {wantDriver && <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: '#EDE9FE', color: '#5B21B6' }}>🚗 מחלקת</span>}
-            </div>
+            <div className="flex gap-3 w-full">
+              <Field label="שם פרטי *">
+                <input name="first_name" required value={cvFirstName}
+                  onChange={(e) => setCvFirstName(e.target.value)}
+                  onBlur={() => touch('cvFirstName')}
+                  placeholder="שם פרטי"
+                  className={inputCls(!!(touched.cvFirstName && cvFirstName.trim().length < 2))} />
+                <Err msg={touched.cvFirstName && cvFirstName.trim().length < 2 ? 'לפחות 2 תווים' : null} />
+              </Field>
 
-            <Field label="שם מלא *">
-              <input name="name" required value={cvName}
-                onChange={(e) => setCvName(e.target.value)}
-                onBlur={() => touch('cvName')}
-                placeholder="שם פרטי ושם משפחה"
-                className={inputCls(!!(touched.cvName && cvName.trim().length < 2))} />
-              <Err msg={touched.cvName && cvName.trim().length < 2 ? 'שם חייב להכיל לפחות 2 תווים' : null} />
-            </Field>
+              <Field label="שם משפחה *">
+                <input name="last_name" required value={cvLastName}
+                  onChange={(e) => setCvLastName(e.target.value)}
+                  onBlur={() => touch('cvLastName')}
+                  placeholder="שם משפחה"
+                  className={inputCls(!!(touched.cvLastName && cvLastName.trim().length < 2))} />
+                <Err msg={touched.cvLastName && cvLastName.trim().length < 2 ? 'לפחות 2 תווים' : null} />
+              </Field>
+            </div>
 
             <Field label="מספר טלפון *">
               <input name="phone" type="tel" dir="ltr" required value={cvPhone}
@@ -636,82 +741,37 @@ export default function SignupPage() {
               {cvPhoneErr()
                 ? <Err msg={cvPhoneErr()} />
                 : touched.cvPhone && validatePhone(cvPhone)
-                  ? <p className="mt-1 text-xs font-medium text-green-600">✓ מספר תקין</p>
+                  ? <p className="mt-1 text-xs font-medium text-emerald-600 w-full text-right">✓ מספר תקין</p>
                   : null}
             </Field>
 
-            <Field label="אימייל (אופציונלי)">
+            <Field label="אימייל" optional>
               <input name="email" type="email" dir="ltr"
                 placeholder="example@gmail.com" className={inputCls(false)} />
-              <p className="mt-1 text-xs text-zinc-400 text-right">לא חובה — לקבלת עדכונים במייל</p>
             </Field>
 
-            <Field label="שכונה">
+            <Field label="עיר / אזור" optional>
               <input name="neighborhood" value={cvNeigh}
                 onChange={(e) => setCvNeigh(e.target.value)}
-                placeholder="שכונה / אזור" className={inputCls(false)} />
+                placeholder="שכונה מרכזית לפעילות" className={inputCls(false)} />
             </Field>
 
-            <Field label="כתובת">
-              <input name="address" value={cvAddr}
-                onChange={(e) => setCvAddr(e.target.value)}
-                placeholder="כתובת מגורים" className={inputCls(false)} />
-            </Field>
-
-            {/* רכב — uniquement si mחלקת sans être aussi cuisinière */}
             {wantDriver && !wantCook && (
-              <div className="flex flex-col items-end gap-2 text-right">
-                <label className="text-sm font-medium text-zinc-800">האם יש לך רכב?</label>
-                <div className="flex gap-3">
-                  {[{ value: 'true', label: 'כן, יש לי רכב' }, { value: 'false', label: 'לא' }].map((opt) => (
-                    <label key={opt.value} className="flex items-center gap-1.5 text-sm text-zinc-800">
+              <div className="flex flex-col items-end gap-3 text-right pt-2 border-t border-slate-100">
+                <label className="text-sm font-medium text-slate-800">האם יש לך רכב פנוי?</label>
+                <div className="flex gap-4">
+                  {[{ value: 'true', label: 'כן, יש לי רכב' }, { value: 'false', label: 'לא, אין לי' }].map((opt) => (
+                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 py-2 px-4 rounded-xl">
                       <input type="radio" name="has_car" value={opt.value}
                         checked={cvHasCar === opt.value}
                         onChange={() => setCvHasCar(opt.value)}
-                        className="accent-[var(--brand)]" />
-                      {opt.label}
+                        className="w-4 h-4 accent-[#91006A]" />
+                      <span className="text-sm font-medium text-slate-700">{opt.label}</span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* העדפות התראות */}
-            <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 space-y-3">
-              <p className="text-sm font-bold text-right" style={{ color: '#4A0731' }}>
-                על מה תרצי לקבל התראות?
-              </p>
-              <div className="flex flex-col gap-2">
-                {wantCook && (
-                  <button type="button" onClick={() => setNotifCook(!notifCook)}
-                    className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
-                    style={{ borderColor: notifCook ? 'var(--brand)' : '#F7D4E2', backgroundColor: notifCook ? '#FFF7FB' : '#FAFAFA' }}>
-                    <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                         style={{ borderColor: notifCook ? 'var(--brand)' : '#D1D5DB', backgroundColor: notifCook ? 'var(--brand)' : '#fff' }}>
-                      {notifCook && <span className="text-white text-xs font-bold">✓</span>}
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-semibold text-zinc-900">🍲 ארוחות פנויות לבישול</span>
-                      <p className="text-xs text-zinc-500">התראה כשיש ארוחה שצריכה מבשלת</p>
-                    </div>
-                  </button>
-                )}
-                {wantDriver && (
-                  <button type="button" onClick={() => setNotifDrv(!notifDrv)}
-                    className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
-                    style={{ borderColor: notifDrv ? 'var(--brand)' : '#F7D4E2', backgroundColor: notifDrv ? '#FFF7FB' : '#FAFAFA' }}>
-                    <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                         style={{ borderColor: notifDrv ? 'var(--brand)' : '#D1D5DB', backgroundColor: notifDrv ? 'var(--brand)' : '#fff' }}>
-                      {notifDrv && <span className="text-white text-xs font-bold">✓</span>}
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-semibold text-zinc-900">🚗 משלוחים פנויים לחלוקה</span>
-                      <p className="text-xs text-zinc-500">התראה כשיש משלוח שצריך מחלקת</p>
-                    </div>
-                  </button>
-                )}
-              </div>
-            </div>
 
             {error && (
               <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 text-right">
@@ -719,12 +779,14 @@ export default function SignupPage() {
               </p>
             )}
 
-            <NavButtons
-              onBack={() => { setStep(1); setError(null); setCategory('volunteer'); }}
-              nextLabel="שליחת הבקשה"
-              nextDisabled={cvName.trim().length < 2 || !validatePhone(cvPhone)}
-              pending={pending}
-            />
+            <div className="pt-2">
+              <NavButtons
+                onBack={handleBackGlobal}
+                nextLabel="סיום הרשמה והצטרפות"
+                nextDisabled={cvFirstName.trim().length < 2 || cvLastName.trim().length < 2 || !validatePhone(cvPhone)}
+                pending={pending}
+              />
+            </div>
           </form>
         )}
 
@@ -733,13 +795,22 @@ export default function SignupPage() {
   );
 }
 
-// ─── Row helper pour le récapitulatif ─────────────────────────────────────────
+// ─── Entry Point עם Suspense ────────────────────────────────────────────────
 
-function Row({ label, value }: { label: string; value: string }) {
+export default function SignupPage() {
   return (
-    <div className="flex items-start justify-between px-4 py-3 gap-3">
-      <span className="text-zinc-500 shrink-0">{label}</span>
-      <span className="font-medium text-zinc-900 text-right">{value}</span>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"
+      dir="rtl"
+    >
+      <div className="fixed top-0 left-0 w-full h-full -z-10 opacity-30 pointer-events-none overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#91006A]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#91006A]/5 rounded-full blur-3xl" />
+      </div>
+
+      <Suspense fallback={<div className="text-[#91006A] p-10 mt-10">טוען טופס...</div>}>
+        <SignupWizard />
+      </Suspense>
     </div>
   );
 }
