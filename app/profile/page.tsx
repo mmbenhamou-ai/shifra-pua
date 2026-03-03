@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getSessionOrDevBypass, DEV_BYPASS_USER_ID } from '@/lib/auth-dev';
 import ProfileForm from './ProfileForm';
 import LogoutButton from '@/app/components/LogoutButton';
+import PushNotificationManager from '@/app/components/PushNotificationManager';
 
 export default async function ProfilePage() {
   const { session, user: sessionUser } = await getSessionOrDevBypass();
@@ -83,6 +84,14 @@ export default async function ProfilePage() {
         </section>
 
         <section className="space-y-3">
+          <div className="flex items-center gap-3 pb-2 pt-2 border-t border-[#91006A]/10 mt-6">
+            <span className="material-symbols-outlined text-[#91006A] text-2xl">device_thermostat</span>
+            <h2 className="text-xl font-bold text-[#403728]">נוטיפיקציות דפדפן</h2>
+          </div>
+          <PushNotificationManager />
+        </section>
+
+        <section className="space-y-3 pt-6 border-t border-[#91006A]/10">
           <Link
             href="/help"
             className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#91006A]/10 hover:bg-[#91006A]/5 transition-colors"

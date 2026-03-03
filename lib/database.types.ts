@@ -617,3 +617,37 @@ export const Constants = {
   },
 } as const
 
+
+// Add user_push_subscriptions table directly since generator implies no token right now
+export interface DatabaseExtensions {
+  public: {
+    Tables: {
+      user_push_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          created_at?: string
+        }
+      }
+    }
+  }
+}
