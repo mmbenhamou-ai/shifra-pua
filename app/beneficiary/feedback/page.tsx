@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import FeedbackForm from './FeedbackForm';
 
 export default async function FeedbackPage({
@@ -10,10 +11,10 @@ export default async function FeedbackPage({
   const { meal_id } = await searchParams;
   if (!meal_id) redirect('/beneficiary');
 
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
 
+  const supabase = await createSupabaseServerClient();
   // Récupère le repas + cuisinière + livreuse
   const { data: meal } = await supabase
     .from('meals')
@@ -50,7 +51,7 @@ export default async function FeedbackPage({
         <div className="text-center space-y-2">
           <div className="flex h-20 w-20 items-center justify-center rounded-full text-4xl mx-auto"
                style={{ backgroundColor: '#FBE4F0' }}>💛</div>
-          <h1 className="text-2xl font-extrabold" style={{ color: '#811453' }}>תודה על האמון!</h1>
+          <h1 className="text-2xl font-extrabold" style={{ color: 'var(--brand)' }}>תודה על האמון!</h1>
           <p className="text-sm text-zinc-500">
             {new Date(meal.date as string).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>

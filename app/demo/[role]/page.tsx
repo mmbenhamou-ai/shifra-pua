@@ -5,9 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const ROLE_REDIRECTS: Record<string, string> = {
-  admin:       '/admin',
-  cook:        '/cook',
-  driver:      '/driver',
+  admin: '/admin',
+  cook: '/cook',
+  driver: '/driver',
   beneficiary: '/beneficiary',
   'cook-driver': '/cook',
 };
@@ -17,23 +17,23 @@ type DemoRole = typeof VALID_ROLES[number];
 
 const DEMO_CREDENTIALS: Record<DemoRole, { email: string; password: string }> = {
   admin: {
-    email:    'demo-admin@shifra-pua.dev',
+    email: 'demo-admin@shifra-pua.dev',
     password: 'DemoAdmin123!',
   },
   cook: {
-    email:    'demo-cook@shifra-pua.dev',
+    email: 'demo-cook@shifra-pua.dev',
     password: 'DemoCook123!',
   },
   driver: {
-    email:    'demo-driver@shifra-pua.dev',
+    email: 'demo-driver@shifra-pua.dev',
     password: 'DemoDriver123!',
   },
   beneficiary: {
-    email:    'demo-beneficiary@shifra-pua.dev',
+    email: 'demo-beneficiary@shifra-pua.dev',
     password: 'DemoBeneficiary123!',
   },
   'cook-driver': {
-    email:    'demo-cook-driver@shifra-pua.dev',
+    email: 'demo-cook-driver@shifra-pua.dev',
     password: 'DemoCookDriver123!',
   },
 };
@@ -48,8 +48,10 @@ export default function DemoLoginPage() {
     const roleParam = params?.role as DemoRole | undefined;
 
     if (!roleParam || !VALID_ROLES.includes(roleParam)) {
-      setError('קישור דמו לא תקין');
-      setLoading(false);
+      setTimeout(() => {
+        setError('קישור דמו לא תקין');
+        setLoading(false);
+      }, 0);
       return;
     }
 
@@ -89,9 +91,9 @@ export default function DemoLoginPage() {
       dir="rtl"
       style={{ background: 'linear-gradient(to bottom, #FFF7FB, #FBE4F0)' }}
     >
-      <div className="w-full max-w-sm rounded-3xl bg-white px-6 py-8 shadow-xl shadow-[#811453]/10 text-center space-y-4">
+      <div className="w-full max-w-sm rounded-3xl bg-white px-6 py-8 shadow-xl shadow-[var(--brand)]/10 text-center space-y-4">
         <div className="text-4xl animate-bounce">💛</div>
-        <h1 className="text-lg font-bold" style={{ color: '#811453' }}>
+        <h1 className="text-lg font-bold" style={{ color: 'var(--brand)' }}>
           מתחברות למשתמש דמו...
         </h1>
         {loading && (
@@ -104,7 +106,7 @@ export default function DemoLoginPage() {
             <p className="text-sm font-medium text-red-600">{error}</p>
             <button
               type="button"
-              className="mt-2 rounded-full border border-[#F7D4E2] px-4 py-2 text-xs font-semibold text-[#811453]"
+              className="mt-2 rounded-full border border-[#F7D4E2] px-4 py-2 text-xs font-semibold text-[var(--brand)]"
               onClick={() => router.replace('/login')}
             >
               חזרה למסך ההתחברות

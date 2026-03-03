@@ -21,7 +21,7 @@ export default function MealCountdown({ endDate }: { endDate: string | null }) {
     return (
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm">
         <p className="text-sm font-semibold text-zinc-500">שירות הארוחות הסתיים 🎉</p>
-        <p className="text-xs text-zinc-400 mt-0.5">תודה על השימוש בשפרה פועה!</p>
+        <p className="text-xs text-zinc-400 mt-0.5">תודה על השימוש בשפרה ופועה!</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function MealCountdown({ endDate }: { endDate: string | null }) {
         </div>
         <div className="text-right">
           <p className="text-[10px] text-zinc-500 mb-0.5">נותרו</p>
-          <p className="text-3xl font-extrabold leading-none" style={{ color: '#811453' }}>
+          <p className="text-3xl font-extrabold leading-none" style={{ color: 'var(--brand)' }}>
             {info}
           </p>
           <p className="text-xs font-medium text-zinc-500">ימים של ארוחות</p>

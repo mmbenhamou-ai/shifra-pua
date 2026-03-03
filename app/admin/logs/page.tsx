@@ -37,7 +37,7 @@ export default async function AdminLogsPage({
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>יומן פעולות</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>יומן פעולות</h1>
         <p className="text-sm text-zinc-500">{total} רשומות</p>
       </header>
 
@@ -72,8 +72,8 @@ export default async function AdminLogsPage({
           {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
             <a key={p} href={`/admin/logs?page=${p}`}
                className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition"
-               style={{ backgroundColor: p === pageNum ? '#811453' : '#FBE4F0',
-                        color:           p === pageNum ? '#fff' : '#811453' }}>
+               style={{ backgroundColor: p === pageNum ? 'var(--brand)' : '#FBE4F0',
+                        color:           p === pageNum ? '#fff' : 'var(--brand)' }}>
               {p}
             </a>
           ))}

@@ -9,7 +9,7 @@ export default function ThankYouPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="flex h-24 w-24 items-center justify-center rounded-full text-5xl"
                style={{ backgroundColor: '#FBE4F0' }}>💛</div>
-          <h1 className="text-3xl font-extrabold" style={{ color: '#811453' }}>תודה רבה!</h1>
+          <h1 className="text-3xl font-extrabold" style={{ color: 'var(--brand)' }}>תודה רבה!</h1>
           <p className="text-base text-zinc-600 leading-relaxed">
             תקופת הארוחות שלך הסתיימה.<br />
             מאחלות לך ולמשפחתך בריאות, שמחה ואושר!
@@ -26,12 +26,12 @@ export default function ThankYouPage() {
         <div className="space-y-3">
           <Link href="/beneficiary"
                 className="flex min-h-[52px] w-full items-center justify-center rounded-2xl text-sm font-bold text-white"
-                style={{ backgroundColor: '#811453' }}>
+                style={{ backgroundColor: 'var(--brand)' }}>
             חזרה לדשבורד
           </Link>
           <Link href="/donate"
                 className="flex min-h-[48px] w-full items-center justify-center rounded-2xl border text-sm font-semibold"
-                style={{ borderColor: '#F7D4E2', color: '#811453' }}>
+                style={{ borderColor: '#F7D4E2', color: 'var(--brand)' }}>
             💛 תרמי לעמותה
           </Link>
         </div>

@@ -5,12 +5,12 @@ export default function MaintenancePage() {
          style={{ background: 'linear-gradient(135deg, #FFF7FB, #FBE4F0)' }}>
       <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full text-5xl"
            style={{ backgroundColor: '#FBE4F0' }}>🔧</div>
-      <h1 className="text-3xl font-extrabold" style={{ color: '#811453' }}>בתחזוקה</h1>
+      <h1 className="text-3xl font-extrabold" style={{ color: 'var(--brand)' }}>בתחזוקה</h1>
       <p className="mt-3 text-base text-zinc-600 leading-relaxed max-w-xs">
         האפליקציה בתחזוקה זמנית.<br />
         נחזור בקרוב! 💛
       </p>
-      <p className="mt-6 text-xs text-zinc-400">שפרה פועה — ביחד אנחנו חזקות</p>
+      <p className="mt-6 text-xs text-zinc-400">שפרה ופועה — ביחד אנחנו חזקות</p>
     </div>
   );
 }

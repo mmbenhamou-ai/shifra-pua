@@ -1,0 +1,31 @@
+# שפרה ופועה — Règles Cursor
+
+Projet : PWA repas post-accouchement (Jérusalem). Stack : Next.js App Router, Supabase, Tailwind, TS. Rôles : admin, יולדת, מבשלת, מחלקת. Hébreu RTL, mobile first, #811453.
+
+Référence : voir [PLAYBOOK_CURSOR.md](PLAYBOOK_CURSOR.md) pour les prompts de session, bugs, commits et journal.
+
+## AVANT chaque action
+- Vérifier la compatibilité avec [PROJECT.md](PROJECT.md)
+- Lister les fichiers à créer ou modifier ; traiter en un seul bloc tant que c’est la même feature/fix (pas de découpage arbitraire par nombre de fichiers)
+- Vérifier que l’action respecte les RLS Supabase existantes
+
+## PENDANT
+- Faire tout le périmètre cohérent d’un coup (ex. une feature complète, toutes les migrations d’un correctif) ; ne pas casser auth, dashboards, Server Actions
+- Tout texte visible en hébreu ; composants en RTL (dir="rtl") ; boutons tactiles ≥ 48px
+- Nouvelle dépendance : l’installer et expliquer en une phrase
+
+## APRÈS / RÉDACTION
+- Quand tu décris ce que tu as fait : le plus court et concis possible (sauf si l’utilisateur demande de détailler)
+- Inclure : résumé minimal + action de test (URL + action) + proposition de commit
+
+## ERREUR / REPARATION
+- Dès qu’une erreur est collée : réfléchir quelles autres erreurs du même type peuvent exister (même pattern, même famille, ailleurs dans le projet), les chercher, puis corriger automatiquement toutes les occurrences sans demander
+- Cause racine, correction minimale mais inclure tous les fichiers concernés par la même cause en une fois
+- Erreur RLS : vérifier les policies avant de modifier le code
+
+## INTERDITS
+- Enchaîner deux tâches sans validation ; « refais tout » / « optimise tout »
+- Continuer sans commit après une tâche réussie ; accepter sans test visuel
+- Découper une même feature/fix en petites étapes sans raison ; texte FR dans l’UI ; modifier les RLS sans vérification
+
+En cas de doute : arrêter et poser une question.

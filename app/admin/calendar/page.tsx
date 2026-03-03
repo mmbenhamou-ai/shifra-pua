@@ -81,7 +81,7 @@ export default async function CalendarPage({
     <div className="space-y-4 pb-4" dir="rtl">
       {/* Header */}
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>לוח שנה</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>לוח שנה</h1>
         <p className="text-sm" style={{ color: '#7C365F' }}>
           {weekLabel} — {days[0].toLocaleDateString('he-IL', { day: 'numeric', month: 'long' })}
           {' עד '}
@@ -94,21 +94,21 @@ export default async function CalendarPage({
         <a
           href={`/admin/calendar?week=${nextWeek}`}
           className="flex min-h-[40px] items-center gap-1 rounded-full border px-4 text-sm font-medium transition active:opacity-70"
-          style={{ borderColor: '#F7D4E2', color: '#811453', backgroundColor: '#FFF7FB' }}
+          style={{ borderColor: '#F7D4E2', color: 'var(--brand)', backgroundColor: '#FFF7FB' }}
         >
           הבא ←
         </a>
         <a
           href="/admin/calendar"
           className="rounded-full px-3 py-1.5 text-xs font-medium transition active:opacity-70"
-          style={{ backgroundColor: '#F7D4E2', color: '#811453' }}
+          style={{ backgroundColor: '#F7D4E2', color: 'var(--brand)' }}
         >
           היום
         </a>
         <a
           href={`/admin/calendar?week=${prevWeek}`}
           className="flex min-h-[40px] items-center gap-1 rounded-full border px-4 text-sm font-medium transition active:opacity-70"
-          style={{ borderColor: '#F7D4E2', color: '#811453', backgroundColor: '#FFF7FB' }}
+          style={{ borderColor: '#F7D4E2', color: 'var(--brand)', backgroundColor: '#FFF7FB' }}
         >
           → קודם
         </a>
@@ -138,21 +138,21 @@ export default async function CalendarPage({
           const dayMeals = byDate[dateStr] ?? [];
           const isToday = dateStr === toStr(new Date());
           return (
-            <div
+              <div
               key={dateStr}
               className="overflow-hidden rounded-2xl border bg-white shadow-sm"
-              style={{ borderColor: isToday ? '#811453' : '#F7D4E2', borderWidth: isToday ? 2 : 1 }}
+              style={{ borderColor: isToday ? 'var(--brand)' : '#F7D4E2', borderWidth: isToday ? 2 : 1 }}
             >
               {/* כותרת יום */}
               <div
                 className="flex items-center justify-between px-4 py-2"
-                style={{ backgroundColor: isToday ? '#811453' : '#FFF7FB' }}
+                style={{ backgroundColor: isToday ? 'var(--brand)' : '#FFF7FB' }}
               >
                 <span
                   className="rounded-full px-2 py-0.5 text-xs font-medium"
                   style={{
                     backgroundColor: isToday ? '#FBE4F0' : '#F7D4E2',
-                    color: '#811453',
+                    color: 'var(--brand)',
                   }}
                 >
                   {dayMeals.length} ארוחות

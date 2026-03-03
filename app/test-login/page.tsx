@@ -6,6 +6,8 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export default function TestLoginPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (process.env.NODE_ENV === 'production') {
     return (
@@ -14,8 +16,6 @@ export default function TestLoginPage() {
       </div>
     );
   }
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const supabase = createSupabaseBrowserClient();
 

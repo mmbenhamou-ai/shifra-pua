@@ -1,19 +1,14 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { RoleSelect, ToggleActiveButton } from './UserActions';
+import Pagination from '@/app/components/Pagination';
 
-const ROLE_LABELS: Record<string, string> = {
-  beneficiary: 'יולדת',
-  cook:        'מבשלת',
-  driver:      'מחלקת',
-  admin:       'אדמין',
-};
 
 const ROLE_TABS = [
-  { key: 'all',         label: 'הכל' },
+  { key: 'all', label: 'הכל' },
   { key: 'beneficiary', label: 'יולדות' },
-  { key: 'cook',        label: 'מבשלות' },
-  { key: 'driver',      label: 'מחלקות' },
-  { key: 'admin',       label: 'אדמינים' },
+  { key: 'cook', label: 'מבשלות' },
+  { key: 'driver', label: 'מחלקות' },
+  { key: 'admin', label: 'אדמינים' },
 ];
 
 const PAGE_SIZE = 50;
@@ -37,16 +32,15 @@ export default async function UsersPage({
     .range(from, to);
 
   if (role !== 'all') query = query.eq('role', role);
-  if (q.trim())       query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
+  if (q.trim()) query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%`);
 
   const { data: users, error, count } = await query;
   const list = users ?? [];
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   return (
     <div className="space-y-5 pb-2" dir="rtl">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>משתמשות</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>משתמשות</h1>
         <p className="text-sm" style={{ color: '#7C365F' }}>{count ?? 0} נמצאו</p>
       </header>
 
@@ -54,10 +48,10 @@ export default async function UsersPage({
       <form method="GET" action="/admin/users" className="flex gap-2">
         {role !== 'all' && <input type="hidden" name="role" value={role} />}
         <input type="text" name="q" defaultValue={q}
-               placeholder="חיפוש לפי שם או טלפון..."
-               className="flex-1 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+          placeholder="חיפוש לפי שם או טלפון..."
+          className="flex-1 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
         <button type="submit" className="rounded-xl px-4 text-sm font-semibold text-white"
-                style={{ backgroundColor: '#811453' }}>
+          style={{ backgroundColor: 'var(--brand)' }}>
           חפשי
         </button>
       </form>
@@ -66,10 +60,12 @@ export default async function UsersPage({
       <div className="flex gap-2 overflow-x-auto pb-1">
         {ROLE_TABS.map((tab) => (
           <a key={tab.key}
-             href={`/admin/users?role=${tab.key}${q ? `&q=${q}` : ''}`}
-             className="flex-shrink-0 rounded-full px-4 py-2 text-sm font-medium transition"
-             style={{ backgroundColor: role === tab.key ? '#811453' : '#FBE4F0',
-                      color:           role === tab.key ? '#FFFFFF' : '#811453' }}>
+            href={`/admin/users?role=${tab.key}${q ? `&q=${q}` : ''}`}
+            className="flex-shrink-0 rounded-full px-4 py-2 text-sm font-medium transition"
+            style={{
+              backgroundColor: role === tab.key ? 'var(--brand)' : '#FBE4F0',
+              color: role === tab.key ? '#FFFFFF' : 'var(--brand)'
+            }}>
             {tab.label}
           </a>
         ))}
@@ -92,7 +88,7 @@ export default async function UsersPage({
                     </div>
                     <div className="text-right">
                       <span className={`flex items-center gap-1.5 text-base font-semibold ${!u.approved ? 'opacity-50' : ''}`}
-                            style={{ color: '#4A0731' }}>
+                        style={{ color: '#4A0731' }}>
                         {!u.approved && <span className="text-xs text-zinc-400">(מושבת)</span>}
                         {u.name as string}
                       </span>
@@ -100,7 +96,7 @@ export default async function UsersPage({
                   </div>
 
                   {u.phone && (
-                    <a href={`tel:${u.phone}`} className="text-sm" style={{ color: '#811453' }}>
+                    <a href={`tel:${u.phone}`} className="text-sm" style={{ color: 'var(--brand)' }}>
                       {u.phone as string}
                     </a>
                   )}
@@ -113,8 +109,10 @@ export default async function UsersPage({
 
                   {u.role === 'driver' && (
                     <span className="rounded-full px-2 py-0.5 text-xs"
-                          style={{ backgroundColor: u.has_car ? '#D1FAE5' : '#FEF3C7',
-                                   color:           u.has_car ? '#065F46' : '#92400E' }}>
+                      style={{
+                        backgroundColor: u.has_car ? '#D1FAE5' : '#FEF3C7',
+                        color: u.has_car ? '#065F46' : '#92400E'
+                      }}>
                       {u.has_car ? 'יש רכב' : 'אין רכב'}
                     </span>
                   )}
@@ -129,28 +127,12 @@ export default async function UsersPage({
         )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-1">
-          {page > 1 && (
-            <a href={`/admin/users?role=${role}${q ? `&q=${q}` : ''}&page=${page - 1}`}
-               className="rounded-full px-4 py-2 text-sm font-medium transition"
-               style={{ backgroundColor: '#FBE4F0', color: '#811453' }}>
-              ← הקודם
-            </a>
-          )}
-          <span className="text-sm" style={{ color: '#7C365F' }}>
-            עמוד {page} מתוך {totalPages}
-          </span>
-          {page < totalPages && (
-            <a href={`/admin/users?role=${role}${q ? `&q=${q}` : ''}&page=${page + 1}`}
-               className="rounded-full px-4 py-2 text-sm font-medium transition"
-               style={{ backgroundColor: '#FBE4F0', color: '#811453' }}>
-              הבא →
-            </a>
-          )}
-        </div>
-      )}
+      <Pagination
+        page={page}
+        total={count ?? 0}
+        perPage={PAGE_SIZE}
+        makeHref={(p) => `/admin/users?role=${role}${q ? `&q=${q}` : ''}&page=${p}`}
+      />
     </div>
   );
 }

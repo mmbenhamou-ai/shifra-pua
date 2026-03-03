@@ -4,14 +4,14 @@ const FAQ: { role: string; icon: string; color: string; items: { q: string; a: s
   {
     role: 'יולדת',
     icon: '👶',
-    color: '#811453',
+    color: 'var(--brand)',
     items: [
       { q: 'איך נרשמים?', a: 'לוחצות על "הרשמה" בעמוד הכניסה, ממלאות את הפרטים (שם, טלפון, כתובת, שכונה) ובוחרות תפקיד "יולדת". מחכות לאישור המנהל.' },
       { q: 'מה זה "תאריך תחילה"?', a: 'התאריך ממנו מתחיל שירות הארוחות עבורכן. בדרך כלל יום הלידה או יום השחרור מבית החולים.' },
       { q: 'איך רואים את הארוחות שלי?', a: 'אחרי הכניסה לאפליקציה, מגיעים אוטומטית ללוח הארוחות האישי. שם מופיעות כל הארוחות המתוכננות עם הסטטוס שלהן.' },
       { q: 'מה המשמעות של הסטטוסים השונים?', a: '"פנויה" = ארוחה עוד לא הוקצתה למבשלת. "יש מבשלת" = מבשלת לקחה על עצמה להכין. "מוכנה לאיסוף" = המבשלת סיימה. "נמסר" = מחלקת הביאה. "אושר" = אתן אישרתן קבלה.' },
       { q: 'איך מאשרים קבלת ארוחה?', a: 'לחצו על כפתור "התקבל ✓" בכרטיס הארוחה המתאים. הכפתור מופיע רק כשהסטטוס הוא "נמסר".' },
-      { q: 'מה עושים אם יש בעיה?', a: 'פנו ישירות לרכזת פרויקט שפרה פועה בטלפון.' },
+      { q: 'מה עושים אם יש בעיה?', a: 'פנו הישר לרכזת פרויקט שפרה ופועה בטלפון.' },
     ],
   },
   {
@@ -55,7 +55,7 @@ const FAQ: { role: string; icon: string; color: string; items: { q: string; a: s
 export default function HelpPage() {
   return (
     <div className="min-h-screen pb-10" dir="rtl" style={{ background: 'linear-gradient(to bottom, #FFF7FB, #FBE4F0)' }}>
-      <header className="w-full px-4 py-4 shadow-md" style={{ backgroundColor: '#811453' }}>
+      <header className="w-full px-4 py-4 shadow-md" style={{ backgroundColor: 'var(--brand)' }}>
         <div className="mx-auto flex max-w-md items-center justify-between">
           <Link href="/" className="text-sm text-[#F7D4E2] active:opacity-70">← חזרה</Link>
           <h1 className="text-xl font-bold text-white">מרכז עזרה</h1>
@@ -85,7 +85,7 @@ export default function HelpPage() {
         ))}
 
         <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 text-center shadow-sm">
-          <p className="text-sm font-semibold" style={{ color: '#811453' }}>עוד שאלות?</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>עוד שאלות?</p>
           <p className="mt-1 text-sm text-zinc-600">פנו לרכזת הפרויקט</p>
         </div>
       </main>

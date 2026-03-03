@@ -1,0 +1,5 @@
+# Clé API pour OpenClaw (sur le VPS) — Gemini uniquement
+# Copie ce fichier en ~/.openclaw/env sur le serveur, remplis, puis:
+#   bash openclaw-gemini-only.sh
+
+export GEMINI_API_KEY=""

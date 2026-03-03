@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import Link from 'next/link';
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
@@ -19,10 +20,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default async function BeneficiaryHistoryPage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
 
+  const supabase = await createSupabaseServerClient();
   const { data: beneficiary } = await supabase
     .from('beneficiaries')
     .select('id')
@@ -44,8 +45,8 @@ export default async function BeneficiaryHistoryPage() {
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <div className="flex items-center justify-between">
-        <Link href="/beneficiary" className="text-sm font-medium" style={{ color: '#811453' }}>← חזרה</Link>
-        <h1 className="text-xl font-bold" style={{ color: '#811453' }}>היסטוריית ארוחות</h1>
+        <Link href="/beneficiary" className="text-sm font-medium" style={{ color: 'var(--brand)' }}>← חזרה</Link>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--brand)' }}>היסטוריית ארוחות</h1>
       </div>
 
       {/* סיכום */}
@@ -57,7 +58,7 @@ export default async function BeneficiaryHistoryPage() {
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-[#F7D4E2] bg-white p-3 text-right shadow-sm">
             <p className="text-[10px] text-zinc-500">{s.label}</p>
-            <p className="text-2xl font-extrabold" style={{ color: '#811453' }}>{s.value}</p>
+            <p className="text-2xl font-extrabold" style={{ color: 'var(--brand)' }}>{s.value}</p>
           </div>
         ))}
       </div>

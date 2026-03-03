@@ -1,4 +1,4 @@
-# ARCHITECTURE.md — שפרה פועה
+# ARCHITECTURE.md — שפרה ופועה
 
 ## Stack Technique
 
@@ -101,16 +101,19 @@ app/
 
 ### Table: `users`
 ```sql
-id          uuid (PK, = auth.uid())
-name        text
-phone       text
-role        text  -- 'beneficiary' | 'cook' | 'driver' | 'admin'
-address     text
-neighborhood text
-has_car     boolean
-approved    boolean DEFAULT false
-notes       text    -- allergies, préférences
-created_at  timestamptz
+id            uuid (PK, = auth.uid())
+name          text
+phone         text
+role          text  -- 'beneficiary' | 'cook' | 'driver' | 'admin'
+address       text
+neighborhood  text
+has_car       boolean
+also_driver   boolean DEFAULT false  -- bénévole qui est aussi מחלקת
+notif_cooking  boolean DEFAULT true
+notif_delivery boolean DEFAULT true
+approved      boolean DEFAULT false
+notes         text    -- allergies, préférences
+created_at    timestamptz
 ```
 
 ### Table: `beneficiaries`

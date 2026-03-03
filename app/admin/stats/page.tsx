@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase-admin';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 
 function weekLabel(offset: number): string {
   const d = new Date();
@@ -9,20 +9,18 @@ function weekLabel(offset: number): string {
 }
 
 export default async function StatsPage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session, user: me } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
-  const { data: me } = await supabase.from('users').select('role').eq('id', session.user.id).maybeSingle();
   if (me?.role !== 'admin') redirect('/');
   const admin = createAdminClient();
-  const now   = new Date();
+  const now = new Date();
 
   // --- Totaux globaux ---
   const [
-    { count: totalMeals   },
-    { count: totalUsers   },
+    { count: totalMeals },
+    { count: totalUsers },
     { count: coveredMeals },
-    { count: pendingReg   },
+    { count: pendingReg },
   ] = await Promise.all([
     admin.from('meals').select('*', { count: 'exact', head: true }),
     admin.from('users').select('*', { count: 'exact', head: true }).eq('approved', true),
@@ -30,8 +28,8 @@ export default async function StatsPage() {
     admin.from('users').select('*', { count: 'exact', head: true }).eq('approved', false),
   ]);
 
-  const total    = totalMeals   ?? 0;
-  const covered  = coveredMeals ?? 0;
+  const total = totalMeals ?? 0;
+  const covered = coveredMeals ?? 0;
   const coverage = total > 0 ? Math.round((covered / total) * 100) : 0;
 
   // --- Repas par semaine (6 dernières semaines) ---
@@ -39,10 +37,10 @@ export default async function StatsPage() {
   for (let w = 5; w >= 0; w--) {
     const start = new Date(now);
     start.setDate(start.getDate() - start.getDay() - 7 * w);
-    const end   = new Date(start);
+    const end = new Date(start);
     end.setDate(end.getDate() + 6);
     const startStr = start.toISOString().split('T')[0];
-    const endStr   = end.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
 
     const [{ count: wTotal }, { count: wCov }] = await Promise.all([
       admin.from('meals').select('*', { count: 'exact', head: true })
@@ -62,7 +60,7 @@ export default async function StatsPage() {
 
   const cookMap: Record<string, { id: string; name: string; count: number }> = {};
   (cookMeals ?? []).forEach((m) => {
-    const cId   = m.cook_id as string;
+    const cId = m.cook_id as string;
     const cName = (m.cook as { name?: string } | null)?.name ?? cId;
     if (!cookMap[cId]) cookMap[cId] = { id: cId, name: cName, count: 0 };
     cookMap[cId].count++;
@@ -77,7 +75,7 @@ export default async function StatsPage() {
 
   const driverMap: Record<string, { id: string; name: string; count: number }> = {};
   (driverMeals ?? []).forEach((m) => {
-    const dId   = m.driver_id as string;
+    const dId = m.driver_id as string;
     const dName = (m.driver as { name?: string } | null)?.name ?? dId;
     if (!driverMap[dId]) driverMap[dId] = { id: dId, name: dName, count: 0 };
     driverMap[dId].count++;
@@ -86,22 +84,41 @@ export default async function StatsPage() {
 
   return (
     <div className="space-y-6 pb-6" dir="rtl">
-      <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>סטטיסטיקה</h1>
-        <p className="text-sm" style={{ color: '#7C365F' }}>נתונים כלליים על פעילות המערכת</p>
+      <header className="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>סטטיסטיקה</h1>
+          <p className="text-sm" style={{ color: '#7C365F' }}>נתונים כלליים על פעילות המערכת</p>
+        </div>
+        {/* Export buttons */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { type: 'meals', label: 'ייצוא ארוחות ↓' },
+            { type: 'users', label: 'ייצוא משתמשות ↓' },
+            { type: 'beneficiaries', label: 'ייצוא יולדות ↓' },
+          ].map(({ type, label }) => (
+            <a
+              key={type}
+              href={`/api/admin/export?type=${type}`}
+              className="rounded-xl border px-3 py-2 text-xs font-semibold transition hover:opacity-80"
+              style={{ borderColor: '#F7D4E2', color: 'var(--brand)', backgroundColor: '#FBE4F0' }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
       </header>
 
       {/* כרטיסי סיכום */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'סה״כ ארוחות',      value: total.toLocaleString('he-IL') },
-          { label: 'משתמשות מאושרות',  value: (totalUsers ?? 0).toLocaleString('he-IL') },
-          { label: 'אחוז כיסוי',        value: coverage + '%' },
-          { label: 'ממתינות לאישור',   value: (pendingReg ?? 0).toLocaleString('he-IL') },
+          { label: 'סה״כ ארוחות', value: total.toLocaleString('he-IL') },
+          { label: 'משתמשות מאושרות', value: (totalUsers ?? 0).toLocaleString('he-IL') },
+          { label: 'אחוז כיסוי', value: coverage + '%' },
+          { label: 'ממתינות לאישור', value: (pendingReg ?? 0).toLocaleString('he-IL') },
         ].map((s) => (
           <div key={s.label}
-               className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm text-right">
-            <p className="text-2xl font-bold" style={{ color: '#811453' }}>{s.value}</p>
+            className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm text-right">
+            <p className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>{s.value}</p>
             <p className="mt-0.5 text-xs text-zinc-500">{s.label}</p>
           </div>
         ))}
@@ -109,7 +126,7 @@ export default async function StatsPage() {
 
       {/* גרף שבועי */}
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-bold text-right" style={{ color: '#811453' }}>ארוחות לפי שבוע (6 שבועות אחרונים)</h2>
+        <h2 className="mb-3 text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>ארוחות לפי שבוע (6 שבועות אחרונים)</h2>
         <div className="flex items-end justify-between gap-1.5" style={{ height: 100 }}>
           {weeks.map((w) => {
             const h = Math.round((w.count / maxCount) * 100);
@@ -126,7 +143,7 @@ export default async function StatsPage() {
                   {/* covered bar */}
                   <div
                     className="absolute inset-x-0 bottom-0 rounded-t-sm"
-                    style={{ height: `${hc}%`, backgroundColor: '#811453' }}
+                    style={{ height: `${hc}%`, backgroundColor: 'var(--brand)' }}
                   />
                 </div>
                 <p className="text-[9px] text-zinc-500 mt-0.5">{w.label}</p>
@@ -136,15 +153,15 @@ export default async function StatsPage() {
         </div>
         <div className="mt-2 flex justify-end gap-3 text-[10px] text-zinc-500">
           <span><span className="inline-block h-2 w-4 rounded-sm align-middle" style={{ backgroundColor: '#F7D4E2' }} /> סה״כ</span>
-          <span><span className="inline-block h-2 w-4 rounded-sm align-middle" style={{ backgroundColor: '#811453' }} /> מכוסות</span>
+          <span><span className="inline-block h-2 w-4 rounded-sm align-middle" style={{ backgroundColor: 'var(--brand)' }} /> מכוסות</span>
         </div>
       </div>
 
       {/* מדד כיסוי */}
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-bold text-right" style={{ color: '#811453' }}>אחוז כיסוי כולל</h2>
+        <h2 className="mb-2 text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>אחוז כיסוי כולל</h2>
         <div className="h-4 w-full overflow-hidden rounded-full bg-[#FBE4F0]">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${coverage}%`, backgroundColor: '#811453' }} />
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${coverage}%`, backgroundColor: 'var(--brand)' }} />
         </div>
         <p className="mt-1 text-left text-xs text-zinc-500">{coverage}% ({covered} מתוך {total})</p>
       </div>
@@ -153,14 +170,14 @@ export default async function StatsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* מבשלות */}
         <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-bold text-right" style={{ color: '#811453' }}>🍲 מבשלות מובילות</h2>
+          <h2 className="mb-3 text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>🍲 מבשלות מובילות</h2>
           {topCooks.length === 0 ? (
             <p className="text-xs text-zinc-400 text-right">אין נתונים עדיין</p>
           ) : (
             <ol className="space-y-2">
               {topCooks.map((c, i) => (
                 <li key={c.id} className="flex items-center justify-between text-sm">
-                  <span className="font-bold" style={{ color: '#811453' }}>{c.count} ארוחות</span>
+                  <span className="font-bold" style={{ color: 'var(--brand)' }}>{c.count} ארוחות</span>
                   <span className="flex items-center gap-1.5 text-zinc-800">
                     <span className="text-zinc-400 text-xs">#{i + 1}</span>
                     {c.name}
@@ -173,14 +190,14 @@ export default async function StatsPage() {
 
         {/* מחלקות */}
         <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-bold text-right" style={{ color: '#811453' }}>🚗 מחלקות מובילות</h2>
+          <h2 className="mb-3 text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>🚗 מחלקות מובילות</h2>
           {topDrivers.length === 0 ? (
             <p className="text-xs text-zinc-400 text-right">אין נתונים עדיין</p>
           ) : (
             <ol className="space-y-2">
               {topDrivers.map((d, i) => (
                 <li key={d.id} className="flex items-center justify-between text-sm">
-                  <span className="font-bold" style={{ color: '#811453' }}>{d.count} משלוחים</span>
+                  <span className="font-bold" style={{ color: 'var(--brand)' }}>{d.count} משלוחים</span>
                   <span className="flex items-center gap-1.5 text-zinc-800">
                     <span className="text-zinc-400 text-xs">#{i + 1}</span>
                     {d.name}

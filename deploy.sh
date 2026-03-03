@@ -8,7 +8,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${YELLOW}🔍 Vérification des variables d'environnement שפרה פועה...${NC}"
+echo -e "${YELLOW}🔍 Vérification des variables d'environnement שפרה ופועה...${NC}"
 
 REQUIRED_VARS=(
   "NEXT_PUBLIC_SUPABASE_URL"

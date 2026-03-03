@@ -1,26 +1,63 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { takeDelivery, markPickedUp, markDelivered } from '@/app/actions/meals';
 export { useMealRealtime, ConflictBanner } from '@/app/components/RealtimeMealList';
+import { buildWazeUrl } from '@/lib/utils';
 
 function Spinner() {
   return <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />;
 }
 
-function ConflictMsg({ msg }: { msg: string }) {
+function ConflictMsg({ msg, onClose }: { msg: string; onClose: () => void }) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+      const cleanup = setTimeout(onClose, 300);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [msg, onClose]);
+
   return (
-    <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-right">
-      <span className="text-base">⚠️</span>
-      <p className="text-xs font-medium text-amber-800">{msg}</p>
+    <div
+      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4"
+      style={{ pointerEvents: 'none' }}
+    >
+      <div
+        className="flex max-w-md items-start gap-3 rounded-2xl border px-4 py-3 text-right shadow-lg"
+        style={{
+          backgroundColor: '#FEF3C7',
+          borderColor: '#FBBF24',
+          color: '#92400E',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.3s ease-out',
+          pointerEvents: 'auto',
+        }}
+      >
+        <span className="text-base">⚠️</span>
+        <p className="flex-1 text-xs font-medium">{msg}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setVisible(false);
+            setTimeout(onClose, 300);
+          }}
+          className="ml-2 text-xs font-bold"
+          aria-label="סגירת ההודעה"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   );
 }
 
 export function TakeDeliveryButton({ mealId }: { mealId: string }) {
   const [isPending, start] = useTransition();
-  const [error, setError]  = useState<string | null>(null);
-  const [taken,  setTaken] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [taken, setTaken] = useState(false);
 
   if (taken) {
     return (
@@ -47,11 +84,11 @@ export function TakeDeliveryButton({ mealId }: { mealId: string }) {
           });
         }}
         className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
-        style={{ background: 'linear-gradient(135deg,#811453,#a0185f)', boxShadow: '0 4px 18px rgba(129,20,83,0.35)' }}
+        style={{ background: 'linear-gradient(135deg,var(--brand),#a0185f)', boxShadow: '0 4px 18px rgba(129,20,83,0.35)' }}
       >
         {isPending ? <><Spinner /> מחשבת...</> : <><span className="text-lg">🚗</span> לקחתי על עצמי</>}
       </button>
-      {error && <ConflictMsg msg={error} />}
+      {error && <ConflictMsg msg={error} onClose={() => setError(null)} />}
     </div>
   );
 }
@@ -59,24 +96,32 @@ export function TakeDeliveryButton({ mealId }: { mealId: string }) {
 // נאסף + פתח Waze ליולדת
 export function PickedUpButton({ mealId, benAddress }: { mealId: string; benAddress?: string | null }) {
   const [isPending, start] = useTransition();
-  const [error, setError]  = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const navUrl = benAddress ? buildWazeUrl(benAddress) : null;
+  const disabledNav = !navUrl;
 
   return (
     <div className="space-y-2">
       <button
         type="button"
-        disabled={isPending}
+        disabled={isPending || disabledNav}
+        title={disabledNav ? 'Adresse manquante' : undefined}
         onClick={() => {
+          if (disabledNav) {
+            setError('Adresse manquante');
+            return;
+          }
           setError(null);
           start(async () => {
             try {
               await markPickedUp(mealId);
-              // Ouvre Waze vers la יולדת après confirmation
-              if (benAddress) {
-                const encoded = encodeURIComponent(benAddress);
-                window.open(`https://waze.com/ul?q=${encoded}&navigate=yes`, '_blank');
+              if (navUrl) {
+                window.open(navUrl, '_blank');
               }
-            } catch (err) { setError(err instanceof Error ? err.message : 'שגיאה'); }
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'שגיאה');
+            }
           });
         }}
         className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
@@ -84,14 +129,14 @@ export function PickedUpButton({ mealId, benAddress }: { mealId: string; benAddr
       >
         {isPending ? <><Spinner /> שומרת...</> : <><span className="text-lg">📦</span> נאסף — אני בדרך ליולדת 🗺️</>}
       </button>
-      {error && <ConflictMsg msg={error} />}
+      {error && <ConflictMsg msg={error} onClose={() => setError(null)} />}
     </div>
   );
 }
 
 export function DeliveredButton({ mealId }: { mealId: string }) {
   const [isPending, start] = useTransition();
-  const [error, setError]  = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="space-y-2">
@@ -110,7 +155,7 @@ export function DeliveredButton({ mealId }: { mealId: string }) {
       >
         {isPending ? <><Spinner /> שומרת...</> : <><span className="text-lg">✅</span> נמסר בהצלחה!</>}
       </button>
-      {error && <ConflictMsg msg={error} />}
+      {error && <ConflictMsg msg={error} onClose={() => setError(null)} />}
     </div>
   );
 }

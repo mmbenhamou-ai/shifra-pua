@@ -12,37 +12,37 @@ interface Notif {
 }
 
 const TYPE_ICONS: Record<string, string> = {
-  meal_taken:           '🍲',
-  meal_ready:           '✅',
-  meal_delivered:       '🚗',
-  meal_confirmed:       '👶',
-  new_registration:     '📝',
-  registration_approved:'✔️',
+  meal_taken: '🍲',
+  meal_ready: '✅',
+  meal_delivered: '🚗',
+  meal_confirmed: '👶',
+  new_registration: '📝',
+  registration_approved: '✔️',
 };
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1)  return 'עכשיו';
+  if (mins < 1) return 'עכשיו';
   if (mins < 60) return `לפני ${mins} דק׳`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `לפני ${hrs} שע׳`;
+  if (hrs < 24) return `לפני ${hrs} שע׳`;
   return `לפני ${Math.floor(hrs / 24)} ימים`;
 }
 
 export default function NotificationBell({ userId }: { userId: string }) {
-  const [open, setOpen]     = useState(false);
+  const [open, setOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
-  const panelRef            = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Stable client — never recreated
-  const supabase = useRef(
+  const [supabase] = useState(() =>
     createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     ),
-  ).current;
+  );
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -69,7 +69,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   // Initial load + realtime
   useEffect(() => {
-    load();
+    const t = setTimeout(() => {
+      load().catch(console.error);
+    }, 0);
     const channel = supabase
       .channel('notifs-' + userId)
       .on(
@@ -122,10 +124,10 @@ export default function NotificationBell({ userId }: { userId: string }) {
       {open && (
         <div className="absolute left-0 top-11 z-50 w-72 overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-[#FBE4F0] px-4 py-2.5">
-            <button onClick={markAllRead} className="text-[11px] text-[#811453] underline">
+            <button onClick={markAllRead} className="text-[11px] text-[var(--brand)] underline">
               סמן הכל כנקרא
             </button>
-            <p className="text-sm font-bold" style={{ color: '#811453' }}>התראות</p>
+            <p className="text-sm font-bold" style={{ color: 'var(--brand)' }}>התראות</p>
           </div>
           <ul className="max-h-80 divide-y divide-[#FBE4F0] overflow-y-auto">
             {notifs.length === 0 ? (

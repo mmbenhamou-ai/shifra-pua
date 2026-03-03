@@ -24,7 +24,7 @@ export default function CreateMenuForm() {
 
   return (
     <section className="rounded-2xl border border-[#F7D4E2] bg-white p-4 shadow-sm">
-      <h2 className="mb-3 text-base font-semibold" style={{ color: '#811453' }}>
+      <h2 className="mb-3 text-base font-semibold" style={{ color: 'var(--brand)' }}>
         + הוספת תפריט חדש
       </h2>
 
@@ -37,7 +37,7 @@ export default function CreateMenuForm() {
             name="name"
             required
             placeholder="למשל: ארוחת בוקר חמה"
-            className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2 text-right text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#811453]"
+            className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2 text-right text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
           />
         </div>
 
@@ -49,7 +49,7 @@ export default function CreateMenuForm() {
             name="type"
             required
             defaultValue=""
-            className="w-full rounded-xl border border-[#F7D4E2] bg-white px-3 py-2 text-right text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[#811453]"
+            className="w-full rounded-xl border border-[#F7D4E2] bg-white px-3 py-2 text-right text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
           >
             <option value="" disabled>— בחרי סוג —</option>
             <option value="breakfast">ארוחת בוקר</option>
@@ -67,7 +67,7 @@ export default function CreateMenuForm() {
             required
             rows={4}
             placeholder={'לחם\nביצים\nגבינה\nסלט'}
-            className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2 text-right text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#811453]"
+            className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2 text-right text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
           />
         </div>
 
@@ -79,7 +79,7 @@ export default function CreateMenuForm() {
           type="submit"
           disabled={isPending}
           className="min-h-[48px] w-full rounded-full text-sm font-semibold text-white transition active:opacity-80 disabled:opacity-60"
-          style={{ backgroundColor: '#811453' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {isPending ? 'שומר...' : 'שמירה'}
         </button>

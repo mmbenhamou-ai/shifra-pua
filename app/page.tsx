@@ -1,19 +1,9 @@
 import { redirect } from 'next/navigation';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 
 export default async function Home() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
+  const { session, user } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
-
-  // Redirige selon le rôle
-  const { data: user } = await supabase
-    .from('users')
-    .select('role, approved')
-    .eq('id', session.user.id)
-    .maybeSingle();
-
   if (!user) redirect('/signup');
   if (!user.approved) redirect('/signup/pending');
 

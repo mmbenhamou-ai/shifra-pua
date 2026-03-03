@@ -15,7 +15,28 @@ export async function confirmMealReceived(mealId: string) {
   const session = await getSession();
   if (!session) throw new Error('לא מחוברת');
 
-  const { error } = await createAdminClient()
+  const admin = createAdminClient();
+
+  // Ensure this user is the beneficiary for the meal
+  const { data: meal, error: mealErr } = await admin
+    .from('meals')
+    .select('beneficiary_id')
+    .eq('id', mealId)
+    .single();
+
+  if (mealErr || !meal) throw new Error('הארוחה לא נמצאה');
+
+  const { data: ben, error: benErr } = await admin
+    .from('beneficiaries')
+    .select('user_id')
+    .eq('id', meal.beneficiary_id)
+    .single();
+
+  if (benErr || !ben || ben.user_id !== session.user.id) {
+    throw new Error('פעולה לא מורשית: ארוחה זו אינה שייכת לך');
+  }
+
+  const { error } = await admin
     .from('meals')
     .update({ status: 'confirmed' })
     .eq('id', mealId)
@@ -36,7 +57,7 @@ export async function takeMeal(mealId: string) {
   const { data, error } = await admin.rpc('take_meal_atomic', {
     p_meal_id: mealId,
     p_user_id: session.user.id,
-    p_role:    'cook',
+    p_role: 'cook',
   });
 
   if (error) throw new Error('שגיאה בלקיחת הארוחה: ' + error.message);
@@ -75,7 +96,7 @@ export async function takeDelivery(mealId: string) {
   const { data, error } = await admin.rpc('take_meal_atomic', {
     p_meal_id: mealId,
     p_user_id: session.user.id,
-    p_role:    'driver',
+    p_role: 'driver',
   });
 
   if (error) throw new Error('שגיאה בלקיחת המשלוח: ' + error.message);

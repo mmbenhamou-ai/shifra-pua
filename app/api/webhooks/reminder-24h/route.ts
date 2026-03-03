@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { checkWebhookAuth } from '../_auth';
+import { getNowInTimezone } from '@/lib/utils';
 
 // n8n polling : repas demain sans cuisinière OU sans livreuse (rappel 24h)
 // GET /api/webhooks/reminder-24h
@@ -10,7 +11,15 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient();
 
-  const tomorrow = new Date();
+  const { data: tzRow } = await admin
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'timezone')
+    .maybeSingle();
+
+  const timezone = (tzRow?.value as string | null) || 'Asia/Jerusalem';
+  const now = getNowInTimezone(timezone);
+  const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 

@@ -1,4 +1,4 @@
-# TESTS.md — Scénarios de test manuels — שפרה פועה
+# TESTS.md — Scénarios de test manuels — שפרה ופועה
 
 ## Avant de lancer en production, valider tous les scénarios ci-dessous.
 
@@ -8,7 +8,7 @@
 
 | # | Scénario | Résultat attendu |
 |---|---------|-----------------|
-| A1 | Ouvrir `/login` sans être connectée | Page login s'affiche avec logo שפרה פועה |
+| A1 | Ouvrir `/login` sans être connectée | Page login s'affiche avec logo שפרה ופועה |
 | A2 | Entrer un numéro invalide (ex: 123) | OTP refusé, message d'erreur clair |
 | A3 | Entrer `050-1234567` → recevoir OTP | Redirection vers dashboard selon rôle |
 | A4 | OTP expiré (>5 min) | Message d'erreur "קוד פג תוקף" |
@@ -161,6 +161,20 @@
 | L2 | Appel direct API avec fausse session | Erreur 401/403 |
 | L3 | Injections SQL dans les formulaires | Paramétré par Supabase — protégé |
 | L4 | HTTPS en production | Certificat SSL valide |
+
+---
+
+## 13. Utils (lib/utils.ts)
+
+| # | Scénario | Résultat attendu |
+|---|---------|-----------------|
+| U1 | `isSameNeighborhood('רמת גן', 'רמת גן')` | `true` (égalité stricte) |
+| U2 | `isSameNeighborhood('Ramat Gan', 'ramat  gan')` | `true` (casse + espaces) |
+| U3 | `isSameNeighborhood('תל אביב', 'תל-אביב')` | `true` (ponctuation/espaces) |
+| U4 | `isSameNeighborhood('ירושלם', 'ירושלים')` | `true` (faute de frappe légère, distance ≤ 2) |
+| U5 | `buildWazeUrl('')` | `null` (adresse vide) |
+| U6 | `buildWazeUrl('רחוב הרצל 10')` | URL Waze encodée contenant 'רחוב הרצל 10, ישראל' |
+| U7 | `buildGoogleMapsUrl('Herzl 10 Tel Aviv')` | URL Google Maps encodée contenant 'Herzl 10 Tel Aviv' |
 
 ---
 

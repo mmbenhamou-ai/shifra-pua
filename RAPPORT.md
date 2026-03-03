@@ -1,4 +1,4 @@
-# RAPPORT DE DÉVELOPPEMENT — שפרה פועה
+# RAPPORT DE DÉVELOPPEMENT — שפרה ופועה
 
 Date : 24 février 2026
 

@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import Link from 'next/link';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -9,10 +10,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default async function DriverSchedulePage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
 
+  const supabase = await createSupabaseServerClient();
   const today = new Date();
   const in14  = new Date(today); in14.setDate(in14.getDate() + 14);
 
@@ -29,8 +30,8 @@ export default async function DriverSchedulePage() {
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <div className="flex items-center justify-between">
-        <Link href="/driver" className="text-sm font-medium" style={{ color: '#811453' }}>← חזרה</Link>
-        <h1 className="text-xl font-bold" style={{ color: '#811453' }}>לוח שבועי</h1>
+        <Link href="/driver" className="text-sm font-medium" style={{ color: 'var(--brand)' }}>← חזרה</Link>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--brand)' }}>לוח שבועי</h1>
       </div>
       <p className="text-xs text-zinc-500 text-right">המשלוחים שלך ב-14 הימים הקרובים</p>
 

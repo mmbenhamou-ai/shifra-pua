@@ -35,7 +35,7 @@ export default async function VolunteersPage({
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>מתנדבות</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>מתנדבות</h1>
         <p className="text-sm text-zinc-500">{list.length} מתנדבות פעילות</p>
       </header>
 
@@ -43,7 +43,7 @@ export default async function VolunteersPage({
       <form method="GET" action="/admin/volunteers" className="flex gap-2">
         <input type="text" name="q" defaultValue={q}
                placeholder="חיפוש לפי שם/טלפון"
-               className="flex-1 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+               className="flex-1 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
         <select name="role" defaultValue={role}
                 className="rounded-xl border border-[#F7D4E2] bg-white px-3 py-2.5 text-sm text-zinc-800 focus:outline-none">
           <option value="all">הכל</option>
@@ -51,7 +51,7 @@ export default async function VolunteersPage({
           <option value="driver">מחלקות</option>
         </select>
         <button type="submit" className="rounded-xl px-4 py-2.5 text-sm font-semibold text-white"
-                style={{ backgroundColor: '#811453' }}>חפשי</button>
+                style={{ backgroundColor: 'var(--brand)' }}>חפשי</button>
       </form>
 
       {list.length === 0 ? (
@@ -68,19 +68,19 @@ export default async function VolunteersPage({
               <li key={v.id as string} className="px-4 py-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 text-sm font-bold text-white"
-                       style={{ backgroundColor: '#811453' }}>
+                       style={{ backgroundColor: 'var(--brand)' }}>
                     {(v.name as string).charAt(0)}
                   </div>
                   <div className="flex-1 text-right">
                     <div className="flex items-center justify-between">
                       <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                            style={{ backgroundColor: '#FBE4F0', color: '#811453' }}>
+                            style={{ backgroundColor: '#FBE4F0', color: 'var(--brand)' }}>
                         {v.role === 'cook' ? '🍲 מבשלת' : '🚗 מחלקת'}
                       </span>
                       <p className="text-sm font-bold text-zinc-900">{v.name as string}</p>
                     </div>
                     {v.phone && (
-                      <a href={`tel:${v.phone}`} className="text-xs mt-0.5 block" style={{ color: '#811453' }}>
+                      <a href={`tel:${v.phone}`} className="text-xs mt-0.5 block" style={{ color: 'var(--brand)' }}>
                         {v.phone as string}
                       </a>
                     )}

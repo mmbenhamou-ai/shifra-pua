@@ -1,0 +1,148 @@
+<!DOCTYPE html><html dir="rtl" lang="he"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#91006A",
+                        "background-light": "#f8f5f8",
+                        "background-dark": "#230f1e",
+                        "custom-text": "#403728",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>שפרה פואה - פרופיל</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-custom-text">
+<div class="relative flex min-h-screen w-full flex-col bg-white max-w-md mx-auto shadow-lg overflow-x-hidden">
+<!-- Header -->
+<div class="flex items-center bg-white p-4 border-b border-primary/10 justify-between">
+<div class="w-10"></div>
+<h1 class="text-xl font-bold leading-tight tracking-tight text-primary" style="">פרופיל</h1>
+<button class="text-custom-text p-2" style="">
+<span class="material-symbols-outlined" style="">settings</span>
+</button>
+</div>
+<!-- Profile Section -->
+<div class="flex p-8 flex-col items-center">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-primary/20" data-alt="Joyful smiling woman portrait in profile circular frame" style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCqCbQrEHc8DK0T9fq0uxV5wOgHx6oqra9DQZQRasyBdRlNeWmiaFwd9jlSeoWE1uvosR5trUIH7ehJkSR-1F-dAHclsxRfOipRXxrxo4WnBTIEjRTDuMyZzzArkICR0pMFG4juwz52z1y_ETWyI01j7d4bd2ABBls9e_p5MnCmDPuY_6Mo9qX3WkFdnjNJwlPMzD9z6lea99XF_XOweerQgYyMNyd7VNWTEf30BPVtlKKLT1FMUmMqkml61Iwjf8VIqwcG5FESXfH-&quot;);">
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-white p-1.5 rounded-full border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" style="">photo_camera</span>
+</div>
+</div>
+<div class="mt-4 flex flex-col items-center">
+<h2 class="text-2xl font-bold text-custom-text" style="">שפרה ופועה</h2>
+<p class="text-primary/70 text-sm font-medium" style="">shifra.pua@example.com</p>
+</div>
+<button class="mt-6 flex min-w-[160px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/90 transition-colors" style="">
+<span class="" style="">עריכת פרופיל</span>
+</button>
+</div>
+<!-- Settings List -->
+<div class="flex flex-col px-4 gap-1">
+<h3 class="text-sm font-bold text-primary/60 px-2 py-3 uppercase tracking-wider" style="">הגדרות חשבון</h3>
+<div class="flex items-center gap-4 bg-white hover:bg-primary/5 px-4 py-3 rounded-xl cursor-pointer transition-colors group">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="">notifications</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-none" style="">התראות</p>
+<p class="text-xs text-custom-text/60 mt-1" style="">נהל את הודעות המערכת שלך</p>
+</div>
+<span class="material-symbols-outlined text-custom-text/40" style="">chevron_left</span>
+</div>
+<div class="flex items-center gap-4 bg-white hover:bg-primary/5 px-4 py-3 rounded-xl cursor-pointer transition-colors group">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="">shield</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-none" style="">פרטיות ואבטחה</p>
+<p class="text-xs text-custom-text/60 mt-1" style="">סיסמה והרשאות גישה</p>
+</div>
+<span class="material-symbols-outlined text-custom-text/40" style="">chevron_left</span>
+</div>
+<div class="flex items-center gap-4 bg-white hover:bg-primary/5 px-4 py-3 rounded-xl cursor-pointer transition-colors group">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="">payments</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-none" style="">תשלומים ומנוי</p>
+<p class="text-xs text-custom-text/60 mt-1" style="">ניהול אמצעי תשלום</p>
+</div>
+<span class="material-symbols-outlined text-custom-text/40" style="">chevron_left</span>
+</div>
+<h3 class="text-sm font-bold text-primary/60 px-2 py-3 mt-4 uppercase tracking-wider" style="">עזרה ותמיכה</h3>
+<div class="flex items-center gap-4 bg-white hover:bg-primary/5 px-4 py-3 rounded-xl cursor-pointer transition-colors group">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="">help</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold" style="">מרכז עזרה</p>
+</div>
+<span class="material-symbols-outlined text-custom-text/40" style="">chevron_left</span>
+</div>
+<div class="flex items-center gap-4 bg-white hover:bg-primary/5 px-4 py-3 rounded-xl cursor-pointer transition-colors group">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-10 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined" style="">info</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold" style="">אודות האפליקציה</p>
+</div>
+<span class="material-symbols-outlined text-custom-text/40" style="">chevron_left</span>
+</div>
+</div>
+<!-- Logout Button -->
+<div class="p-6 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 h-12 rounded-lg border-2 border-primary/30 text-primary font-bold hover:bg-primary/5 transition-all" style="">
+<span class="material-symbols-outlined" style="">logout</span>
+<span class="" style="">התנתקות</span>
+</button>
+</div>
+<!-- Spacer for nav -->
+<div class="h-20"></div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto flex gap-2 border-t border-primary/10 bg-white px-4 pb-4 pt-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary/40 hover:text-primary transition-colors" href="#" style="">
+<span class="material-symbols-outlined" style="">home</span>
+<p class="text-[10px] font-bold" style="">בית</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary/40 hover:text-primary transition-colors" href="#" style="">
+<span class="material-symbols-outlined" style="">calendar_month</span>
+<p class="text-[10px] font-bold" style="">יומן</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary/40 hover:text-primary transition-colors" href="#" style="">
+<span class="material-symbols-outlined" style="">group</span>
+<p class="text-[10px] font-bold" style="">קהילה</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#" style="">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">account_circle</span>
+<p class="text-[10px] font-bold" style="">פרופיל</p>
+</a>
+</div>
+</div>
+</body></html>

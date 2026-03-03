@@ -35,7 +35,7 @@ export default function MealStatusSelect({ mealId, current }: { mealId: string; 
         disabled={isPending}
         value={current}
         onChange={handleChange}
-        className="rounded-xl border border-[#F7D4E2] bg-white px-2 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-[#811453] disabled:opacity-50"
+        className="rounded-xl border border-[#F7D4E2] bg-white px-2 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-[var(--brand)] disabled:opacity-50"
       >
         {STATUSES.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>

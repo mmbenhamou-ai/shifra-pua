@@ -1,4 +1,4 @@
-# BUGS & PROBLÈMES CONNUS — שפרה פועה
+# BUGS & PROBLÈMES CONNUS — שפרה ופועה
 
 ---
 

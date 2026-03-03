@@ -42,7 +42,7 @@ export default async function AnnouncementsPage({
   return (
     <div className="space-y-6 pb-8" dir="rtl">
       <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>הודעות כלליות</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>הודעות כלליות</h1>
         <p className="text-sm text-zinc-500">שלחי הודעה לכל המתנדבות</p>
       </header>
 
@@ -55,9 +55,9 @@ export default async function AnnouncementsPage({
       <form action={sendAnnouncement} className="space-y-4">
         <div className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm divide-y divide-[#FBE4F0]">
           <div className="px-4 py-4 space-y-2">
-            <label className="text-sm font-semibold text-right block" style={{ color: '#811453' }}>לקהל</label>
+            <label className="text-sm font-semibold text-right block" style={{ color: 'var(--brand)' }}>לקהל</label>
             <select name="audience" defaultValue="all"
-                    className="w-full rounded-xl border border-[#F7D4E2] bg-white px-3 py-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-[#811453]">
+                    className="w-full rounded-xl border border-[#F7D4E2] bg-white px-3 py-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-[var(--brand)]">
               <option value="all">כולן</option>
               <option value="cook">מבשלות בלבד</option>
               <option value="driver">מחלקות בלבד</option>
@@ -65,23 +65,23 @@ export default async function AnnouncementsPage({
             </select>
           </div>
           <div className="px-4 py-4 space-y-2">
-            <label className="text-sm font-semibold text-right block" style={{ color: '#811453' }}>תוכן ההודעה</label>
+            <label className="text-sm font-semibold text-right block" style={{ color: 'var(--brand)' }}>תוכן ההודעה</label>
             <textarea name="message" rows={4} required
                       placeholder="כתבי את ההודעה כאן..."
-                      className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+                      className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-zinc-800 text-right focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
           </div>
         </div>
 
         <button type="submit"
                 className="w-full min-h-[52px] rounded-2xl text-base font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #811453, #4A0731)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--brand), #4A0731)' }}>
           📢 שלחי הודעה
         </button>
       </form>
 
       {/* Info box */}
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4 text-right">
-        <p className="text-sm font-semibold" style={{ color: '#811453' }}>מה קורה אחרי השליחה?</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>מה קורה אחרי השליחה?</p>
         <ul className="mt-2 space-y-1 text-xs text-zinc-600">
           <li>🔔 ההודעה מופיעה בפעמון ההתראות של כל המשתמשות הרלוונטיות</li>
           <li>📱 הן יראו אותה בפעם הבאה שיפתחו את האפליקציה</li>

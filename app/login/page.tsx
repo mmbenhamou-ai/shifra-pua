@@ -16,33 +16,13 @@ function normalizePhone(raw: string): string {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [method, setMethod] = useState<Method>('phone');
   const [stage, setStage] = useState<Stage>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = createSupabaseBrowserClient();
-
-  async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (!email.trim() || !password.trim()) { setError('נא למלא אימייל וסיסמה'); return; }
-    setLoading(true);
-    try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (signInError || !data.session) { setError(signInError?.message || 'אימייל או סיסמה שגויים'); return; }
-      const { data: profile } = await supabase.from('users').select('role, approved').eq('id', data.session.user.id).maybeSingle();
-      if (!profile) { router.replace('/signup'); return; }
-      if (!profile.approved) { router.replace('/signup/pending'); return; }
-      const routes: Record<string, string> = { admin: '/admin', beneficiary: '/beneficiary', cook: '/cook', driver: '/driver' };
-      router.replace(routes[profile.role as string] ?? '/');
-    } catch { setError('אירעה שגיאה בלתי צפויה. נסי שוב.'); }
-    finally { setLoading(false); }
-  }
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -106,103 +86,54 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-4"
+      className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8]"
       dir="rtl"
-      style={{ background: 'linear-gradient(160deg, #FFF0F7 0%, #FBE4F0 50%, #F5C6DE 100%)' }}
     >
-      {/* כרטיס */}
-      <div className="w-full max-w-sm">
-        {/* לוגו */}
-        <div className="mb-8 flex flex-col items-center gap-3">
-          <div
-            className="flex h-20 w-20 items-center justify-center rounded-3xl text-3xl font-bold text-white shadow-lg"
-            style={{ backgroundColor: '#811453' }}
+      <div className="w-full max-w-[480px] bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col">
+        <div className="flex items-center p-4 justify-between">
+          <button
+            type="button"
+            className="text-[#91006A] p-2 hover:bg-[#91006A]/10 rounded-full transition-colors"
+            onClick={() => router.replace('/')}
           >
-            שפ
-          </div>
-          <div className="text-center">
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#811453' }}>
-              שפרה פועה
-            </h1>
-            <p className="text-sm" style={{ color: '#7C365F' }}>
-              ארוחות חמות לאחר הלידה
-            </p>
-          </div>
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </button>
+          <h2 className="text-[#91006A] text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-8">
+            התחברות
+          </h2>
         </div>
 
-        {/* בחירת שיטת כניסה */}
-        <div className="mb-4 flex rounded-2xl bg-white/60 p-1 shadow-sm">
-          {([['phone', 'SMS 📱'], ['email', 'אימייל 📧']] as const).map(([m, label]) => (
-            <button key={m} type="button"
-              onClick={() => { setMethod(m); setError(null); setStage('phone'); }}
-              className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition"
-              style={{
-                backgroundColor: method === m ? '#811453' : 'transparent',
-                color: method === m ? '#fff' : '#811453',
-              }}>
-              {label}
-            </button>
-          ))}
+        <div className="px-6 pt-8 pb-4 flex flex-col items-center">
+          <div className="w-24 h-24 bg-[#91006A]/10 rounded-full flex items-center justify-center mb-6 aspect-square">
+            <span className="material-symbols-outlined text-[#91006A] text-5xl">volunteer_activism</span>
+          </div>
+          <h1 className="text-slate-900 text-3xl font-bold leading-tight text-center">שלום!</h1>
+          <p className="text-slate-600 text-base font-normal leading-normal mt-2 text-center">
+            הזינו את מספר הטלפון כדי להתחבר למערכת
+          </p>
         </div>
 
-        {/* טופס */}
-        <div className="rounded-3xl bg-white px-6 py-7 shadow-xl shadow-[#811453]/10">
-
-          {/* ── Email/Password ── */}
-          {method === 'email' && (
-            <form onSubmit={handleEmailLogin} className="space-y-5">
-              <div className="space-y-1.5">
-                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>כניסה עם אימייל</h2>
-                <p className="text-sm text-right" style={{ color: '#7C365F' }}>למשתמשים שנוצרו עם אימייל וסיסמה</p>
-              </div>
-              <div className="space-y-3">
-                <input type="email" dir="ltr" placeholder="admin@example.com" value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-sm text-left text-zinc-900 placeholder:text-gray-400 focus:border-[#811453] focus:outline-none transition-colors" />
-                <input type="password" dir="ltr" placeholder="••••••••" value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-sm text-left text-zinc-900 placeholder:text-gray-400 focus:border-[#811453] focus:outline-none transition-colors" />
-              </div>
-              {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-right text-red-700">{error}</p>}
-              <button type="submit" disabled={loading}
-                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
-                style={{ backgroundColor: '#811453' }}>
-                {loading ? '...נכנסת' : 'כניסה ←'}
-              </button>
-            </form>
-          )}
-
-          {method === 'phone' && (stage === 'phone' ? (
-            <form onSubmit={handleSendCode} className="space-y-5">
-              <div className="space-y-1.5">
-                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>
-                  כניסה למערכת
-                </h2>
-                <p className="text-sm text-right" style={{ color: '#7C365F' }}>
-                  הזיני את מספר הטלפון שלך לקבלת קוד SMS
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-right" style={{ color: '#4A0731' }}>
+        {/* Zone formulaire principale – écran Stitch pour l’étape téléphone */}
+        <div className="px-6 py-4 space-y-6">
+          {stage === 'phone' ? (
+            <form onSubmit={handleSendCode} className="space-y-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-slate-700 dark:text-slate-300 text-sm font-medium pr-1">
                   מספר טלפון
                 </label>
-                <div className="flex items-center overflow-hidden rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] focus-within:border-[#811453] transition-colors">
-                  <span
-                    className="flex-shrink-0 px-3 py-3 text-sm font-semibold border-l border-[#F7D4E2]"
-                    style={{ color: '#811453' }}
-                  >
-                    🇮🇱 +972
-                  </span>
+                <div className="relative flex items-center">
                   <input
+                    className="form-input block w-full border-slate-200 bg-slate-50 h-14 pl-12 pr-6 transition-all text-left placeholder:text-slate-400 rounded-lg focus:ring-2 focus:ring-[#91006A] focus:border-[#91006A]"
+                    dir="ltr"
+                    placeholder="05X-XXXXXXX"
                     type="tel"
                     inputMode="tel"
-                    dir="ltr"
-                    className="flex-1 bg-transparent px-3 py-3 text-sm text-zinc-900 placeholder:text-gray-400 focus:outline-none"
-                    placeholder="05X-XXXXXXX"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
+                  <div className="absolute right-4 text-slate-400">
+                    <span className="material-symbols-outlined">phone_iphone</span>
+                  </div>
                 </div>
               </div>
 
@@ -215,26 +146,36 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
-                style={{ backgroundColor: '#811453' }}
+                className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
               >
-                {loading ? '...שולחת קוד' : 'שלחי לי קוד SMS ←'}
+                <span className="material-symbols-outlined text-xl">send</span>
+                <span>{loading ? '...שולחת קוד' : 'שלחו לי קוד אימות'}</span>
               </button>
 
-              <p className="text-center text-xs" style={{ color: '#7C365F' }}>
-                עדיין לא רשומה?{' '}
-                <a href="/signup" className="font-semibold underline" style={{ color: '#811453' }}>
-                  הרשמה כאן
-                </a>
-              </p>
+              <div className="relative flex py-3 items-center">
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
+                <span className="flex-shrink mx-4 text-slate-400 text-sm">או</span>
+                <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
+              </div>
+
+              {/* Bouton “magic link” – pour l’instant décoratif, on garde le style Stitch */}
+              <button
+                type="button"
+                className="w-full bg-white border-2 border-[#91006A]/20 hover:border-[#91006A] text-[#91006A] font-semibold h-14 transition-all flex items-center justify-center gap-2 rounded-lg"
+                onClick={() => alert('ממש בקרוב!')}
+              >
+                <span className="material-symbols-outlined text-xl">magic_button</span>
+                <span>התחברות באמצעות קישור קסם</span>
+              </button>
             </form>
           ) : (
+            // Étape code : on garde la logique existante mais dans un style proche Stitch
             <form onSubmit={handleVerifyCode} className="space-y-5">
               <div className="space-y-1.5">
-                <h2 className="text-lg font-bold text-right" style={{ color: '#4A0731' }}>
+                <h2 className="text-lg font-bold text-right" style={{ color: '#403728' }}>
                   קוד אימות
                 </h2>
-                <p className="text-sm text-right" style={{ color: '#7C365F' }}>
+                <p className="text-sm text-right text-slate-500">
                   שלחנו קוד SMS למספר{' '}
                   <span className="font-semibold" dir="ltr">
                     +972 {phone.replace(/\D/g, '').replace(/^0/, '')}
@@ -243,15 +184,17 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-right" style={{ color: '#4A0731' }}>
+                <label className="block text-sm font-medium text-right" style={{ color: '#403728' }}>
                   קוד בן 6 ספרות
                 </label>
                 <input
                   type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   dir="ltr"
                   maxLength={6}
-                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-center text-2xl font-bold tracking-[0.4em] text-zinc-900 focus:border-[#811453] focus:outline-none transition-colors"
+                  autoComplete="one-time-code"
+                  className="w-full rounded-2xl border-2 border-[#F7D4E2] bg-[#FFF7FB] px-4 py-3 text-center text-2xl font-bold tracking-[0.4em] text-zinc-900 focus:border-[var(--brand)] focus:outline-none transition-colors"
                   placeholder="• • • • • •"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -267,54 +210,41 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="min-h-[52px] w-full rounded-2xl text-base font-bold text-white shadow-md shadow-[#811453]/30 transition active:scale-[0.98] disabled:opacity-60"
-                style={{ backgroundColor: '#811453' }}
+                className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold h-14 shadow-lg shadow-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
               >
-                {loading ? '...מאמתת' : 'כניסה ←'}
+                <span className="material-symbols-outlined">check_circle</span>
+                <span>{loading ? '...מאמתת' : 'כניסה'}</span>
               </button>
 
               <button
                 type="button"
-                className="w-full text-center text-sm font-medium transition active:opacity-70"
-                style={{ color: '#811453' }}
+                className="w-full text-center text-sm font-medium transition active:opacity-70 text-primary"
                 onClick={() => { setStage('phone'); setCode(''); setError(null); }}
               >
                 ← להחליף מספר טלפון
               </button>
             </form>
-          ))}
+          )}
         </div>
 
-        {/* dev hint */}
-        {process.env.NODE_ENV !== 'production' && (
-          <p className="mt-4 text-center text-xs text-zinc-400">
-            <a href="/test-login" className="underline">כניסת פיתוח</a>
+        {/* Section aide en pied, comme Stitch */}
+        <div className="p-8 mt-auto text-center">
+          <p className="text-sm" style={{ color: '#6B7280' }}>
+            נתקלת בבעיה?{' '}
+            <a
+              className="font-bold hover:underline"
+              href="/help"
+              style={{ color: '#91006A' }}
+            >
+              צרי קשר עם התמיכה
+            </a>
           </p>
-        )}
-
-        {/* Demo links */}
-        <div className="mt-6 border-t border-[#F7D4E2] pt-4">
-          <p className="mb-3 text-center text-xs font-medium" style={{ color: '#9B6A8A' }}>
-            — גישת דמו לבדיקות —
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { role: 'beneficiary', label: '👶 יולדת' },
-              { role: 'cook',        label: '🍲 מבשלת' },
-              { role: 'driver',      label: '🚗 מחלקת' },
-              { role: 'cook-driver', label: '💛 מתנדבת' },
-              { role: 'admin',       label: '⚙️ אדמין'  },
-            ].map((d) => (
-              <a
-                key={d.role}
-                href={`/demo/${d.role}`}
-                className="rounded-xl border border-[#F7D4E2] bg-white py-2 text-center text-xs font-medium text-zinc-700 transition hover:border-[#811453] hover:text-[#811453] active:scale-95"
-              >
-                {d.label}
-              </a>
-            ))}
-          </div>
         </div>
+      </div>
+
+      <div className="fixed top-0 left-0 w-full h-full -z-10 opacity-30 pointer-events-none overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#91006A]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#91006A]/5 rounded-full blur-3xl" />
       </div>
     </div>
   );

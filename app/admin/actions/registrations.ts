@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { createAdminClient } from '@/lib/supabase-admin';
 
 /** מחזיר את כל ימי שישי ושבת בתוך טווח נתון */
@@ -45,12 +44,17 @@ export async function approveUser(userId: string) {
     throw new Error('שגיאה באישור המשתמשת');
   }
 
-  // 2. בדוק אם מדובר ביולדת
+  // 2. שלוף את נתוני המשתמשת
   const { data: user } = await admin
     .from('users')
-    .select('role')
+    .select('role, also_driver, name')
     .eq('id', userId)
     .single();
+
+  // אם היא מבשלת ויש לה גם רכב (also_driver), הפוך אותה ל-both
+  if (user?.also_driver && user?.role === 'cook') {
+    await admin.from('users').update({ role: 'both' }).eq('id', userId);
+  }
 
   if (user?.role !== 'beneficiary') {
     revalidatePath('/admin');
@@ -63,7 +67,7 @@ export async function approveUser(userId: string) {
 
   const { data: existingBen } = await admin
     .from('beneficiaries')
-    .select('id, start_date, num_breakfast_days, num_shabbat_weeks')
+    .select('id, start_date, num_breakfast_days, num_shabbat_weeks, shabbat_friday, shabbat_saturday')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -78,9 +82,11 @@ export async function approveUser(userId: string) {
         start_date: todayStr,
         num_breakfast_days: 14,
         num_shabbat_weeks: 2,
+        shabbat_friday: true,
+        shabbat_saturday: true,
         active: true,
       })
-      .select('id, start_date, num_breakfast_days, num_shabbat_weeks')
+      .select('id, start_date, num_breakfast_days, num_shabbat_weeks, shabbat_friday, shabbat_saturday')
       .single();
 
     if (benCreateError || !newBen) {
@@ -105,7 +111,7 @@ export async function approveUser(userId: string) {
   const startDate = new Date(startDateStr);
   startDate.setHours(0, 0, 0, 0);
   const numBreakfast = (ben.num_breakfast_days as number) ?? 14;
-  const numShabbat   = (ben.num_shabbat_weeks as number) ?? 2;
+  const numShabbat = (ben.num_shabbat_weeks as number) ?? 2;
 
   // 4. שלוף תפריטים פעילים לפי סוג
   const { data: menus } = await admin
@@ -116,6 +122,21 @@ export async function approveUser(userId: string) {
   const menuByType: Record<string, string> = {};
   for (const m of menus ?? []) {
     menuByType[m.type as string] = m.id as string;
+  }
+
+  // Vérification : menus requis présents ?
+  const missingMenus: string[] = [];
+  if (ben.num_breakfast_days > 0 && !menuByType['breakfast'])
+    missingMenus.push('ארוחת בוקר');
+  if (ben.shabbat_friday && !menuByType['shabbat_friday'])
+    missingMenus.push('שבת (שישי)');
+  if (ben.shabbat_saturday && !menuByType['shabbat_saturday'])
+    missingMenus.push('שבת (שבת)');
+
+  if (missingMenus.length > 0) {
+    return {
+      error: `חסרים תפריטים פעילים עבור: ${missingMenus.join(', ')}. אנא צרי תפריטים קודם.`
+    };
   }
 
   const mealsToInsert: {
@@ -181,6 +202,12 @@ export async function approveUser(userId: string) {
 
 export async function rejectUser(userId: string) {
   const admin = createAdminClient();
+
+  // Supprime aussi le compte Auth pour empêcher une reconnexion OTP avec le même numéro
+  const { error: authError } = await admin.auth.admin.deleteUser(userId);
+  if (authError) {
+    console.error('[rejectUser][auth]', authError);
+  }
 
   const { error } = await admin
     .from('users')

@@ -1,18 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import ServiceWorkerRegister from './components/ServiceWorkerRegister';
 
-const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const inter = Inter({ variable: '--font-geist-sans', subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'שפרה פועה',
+  title: 'שפרה ופועה',
   description: 'מערכת ניהול ארוחות לאחר לידה — ביחד אנחנו חזקות',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'שפרה פועה',
+    title: 'שפרה ופועה',
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#811453',
+  themeColor: '#91006A',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -37,10 +37,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="apple-touch-fullscreen" content="yes" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="theme-color" content="#811453" />
+        <meta name="theme-color" content="#91006A" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        />
       </head>
       <body
-        className={`${geist.variable} antialiased`}
+        className={`${inter.variable} antialiased font-sans`}
         style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'pan-y' }}
       >
         <ServiceWorkerRegister />

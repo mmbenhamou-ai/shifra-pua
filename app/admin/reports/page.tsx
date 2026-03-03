@@ -45,7 +45,7 @@ export default async function ReportsPage({
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>דוחות חודשיים</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>דוחות חודשיים</h1>
       </header>
 
       {/* Month selector */}
@@ -59,15 +59,15 @@ export default async function ReportsPage({
           {[2024, 2025, 2026].map((yr) => <option key={yr} value={yr}>{yr}</option>)}
         </select>
         <button type="submit" className="rounded-xl px-4 text-sm font-semibold text-white"
-                style={{ backgroundColor: '#811453' }}>הצג</button>
+                style={{ backgroundColor: 'var(--brand)' }}>הצג</button>
       </form>
 
-      <h2 className="text-lg font-bold text-right" style={{ color: '#811453' }}>{monthName}</h2>
+      <h2 className="text-lg font-bold text-right" style={{ color: 'var(--brand)' }}>{monthName}</h2>
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: 'סה״כ ארוחות',     value: total,     color: '#811453' },
+          { label: 'סה״כ ארוחות',     value: total,     color: 'var(--brand)' },
           { label: 'מכוסות',           value: covered,   color: '#2563EB' },
           { label: 'נמסרו',            value: delivered, color: '#D97706' },
           { label: 'אושרו',            value: confirmed, color: '#059669' },
@@ -84,21 +84,21 @@ export default async function ReportsPage({
 
       {/* Coverage bar */}
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-4">
-        <p className="text-sm font-bold text-right mb-2" style={{ color: '#811453' }}>אחוז כיסוי</p>
+        <p className="text-sm font-bold text-right mb-2" style={{ color: 'var(--brand)' }}>אחוז כיסוי</p>
         <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-100">
           <div className="h-full rounded-full transition-all duration-700"
-               style={{ width: `${coverage}%`, background: 'linear-gradient(90deg, #811453, #F97316)' }} />
+               style={{ width: `${coverage}%`, background: 'linear-gradient(90deg, var(--brand), #F97316)' }} />
         </div>
         <p className="text-xs text-zinc-400 mt-1 text-left">{coverage}%</p>
       </div>
 
       {/* Export hint */}
       <div className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right">
-        <p className="text-sm font-semibold" style={{ color: '#811453' }}>ייצוא CSV</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>ייצוא CSV</p>
         <p className="text-xs text-zinc-500 mt-0.5">
           לייצוא CSV, השתמשי ב-Supabase Table Editor → Export to CSV.
         </p>
-        <Link href="/admin/stats" className="mt-2 block text-xs underline" style={{ color: '#811453' }}>
+        <Link href="/admin/stats" className="mt-2 block text-xs underline" style={{ color: 'var(--brand)' }}>
           לסטטיסטיקה מפורטת →
         </Link>
       </div>

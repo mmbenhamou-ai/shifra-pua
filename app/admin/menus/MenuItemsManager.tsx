@@ -43,13 +43,13 @@ export default function MenuItemsManager({
             <button
               disabled={isPending || i === 0}
               onClick={() => moveItem(i, i - 1)}
-              className="text-[#811453] disabled:opacity-30 text-xs leading-none"
+              className="text-[var(--brand)] disabled:opacity-30 text-xs leading-none"
               title="למעלה"
             >▲</button>
             <button
               disabled={isPending || i === items.length - 1}
               onClick={() => moveItem(i, i + 1)}
-              className="text-[#811453] disabled:opacity-30 text-xs leading-none"
+              className="text-[var(--brand)] disabled:opacity-30 text-xs leading-none"
               title="למטה"
             >▼</button>
           </div>
@@ -72,14 +72,14 @@ export default function MenuItemsManager({
           type="submit"
           disabled={isPending}
           className="flex-shrink-0 rounded-xl px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-          style={{ backgroundColor: '#811453' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + הוסף
         </button>
         <input
           name="newItem"
           placeholder="מנה חדשה..."
-          className="flex-1 rounded-xl border border-[#F7D4E2] bg-white px-3 py-2 text-sm text-zinc-900 text-right placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#811453]"
+          className="flex-1 rounded-xl border border-[#F7D4E2] bg-white px-3 py-2 text-sm text-zinc-900 text-right placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
         />
       </form>
 

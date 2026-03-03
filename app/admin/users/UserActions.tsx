@@ -18,7 +18,10 @@ export function RoleSelect({ userId, current }: { userId: string; current: strin
       value={current}
       onChange={(e) => {
         if (!window.confirm(`לשנות תפקיד ל-${e.target.options[e.target.selectedIndex].text}?`)) return;
-        start(async () => { await changeUserRole(userId, e.target.value); });
+        start(async () => {
+          await changeUserRole(userId, e.target.value);
+          await fetch('/api/admin/invalidate-role-cache', { method: 'POST' });
+        });
       }}
       className="rounded-xl border border-[#F7D4E2] bg-white px-2 py-1.5 text-xs text-zinc-800 focus:outline-none disabled:opacity-50"
     >

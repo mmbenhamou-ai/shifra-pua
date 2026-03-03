@@ -10,7 +10,7 @@ export default function SignupPendingPage() {
       <div className="space-y-5 max-w-sm w-full">
         <div className="text-6xl">✅</div>
 
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>
           הבקשה נשלחה!
         </h1>
 
@@ -26,7 +26,7 @@ export default function SignupPendingPage() {
           className="rounded-2xl border p-4 text-right text-sm"
           style={{ borderColor: '#F7D4E2', backgroundColor: '#FFFFFF', color: '#7C365F' }}
         >
-          <p className="font-semibold mb-1" style={{ color: '#811453' }}>
+          <p className="font-semibold mb-1" style={{ color: 'var(--brand)' }}>
             מה קורה עכשיו?
           </p>
           <ul className="space-y-1 list-none">
@@ -39,7 +39,7 @@ export default function SignupPendingPage() {
         <Link
           href="/login"
           className="block min-h-[52px] w-full rounded-full pt-3 text-center text-sm font-semibold text-white transition"
-          style={{ backgroundColor: '#811453' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           חזרה לדף הכניסה
         </Link>

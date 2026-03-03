@@ -26,6 +26,23 @@ export async function registerUser(formData: FormData) {
 
   const admin = createAdminClient();
 
+  // Vérifie qu'aucun autre compte n'utilise déjà ce numéro
+  const { data: existingByPhone, error: phoneCheckError } = await admin
+    .from('users')
+    .select('id')
+    .eq('phone', phone)
+    .neq('id', userId)
+    .maybeSingle();
+
+  if (phoneCheckError) {
+    console.error('[registerUser][phone-check]', phoneCheckError);
+    throw new Error('שגיאה בבדיקת מספר הטלפון, נסי שוב מאוחר יותר');
+  }
+
+  if (existingByPhone) {
+    throw new Error('Ce numéro de téléphone est déjà associé à un autre compte');
+  }
+
   const { error: userError } = await admin.from('users').upsert({
     id: userId,
     phone,

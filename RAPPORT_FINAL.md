@@ -1,4 +1,4 @@
-# RAPPORT_FINAL.md — שפרה פועה — État complet de l'application
+# RAPPORT_FINAL.md — שפרה ופועה — État complet de l'application
 
 ## Date : 24 Février 2026
 
@@ -221,4 +221,4 @@ git push
 
 ---
 
-*Généré automatiquement — שפרה פועה — ביחד אנחנו חזקות 💛*
+*Généré automatiquement — שפרה ופועה — ביחד אנחנו חזקות 💛*

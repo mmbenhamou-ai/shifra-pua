@@ -62,7 +62,7 @@ export default function FeedbackForm({ mealId, cook, driver }: Props) {
               style={{ transform: rating === s.value ? 'scale(1.25)' : 'scale(1)' }}>
               <span className="text-3xl">{s.emoji}</span>
               <span className="text-[10px] font-medium"
-                    style={{ color: rating === s.value ? '#811453' : '#9CA3AF' }}>
+                    style={{ color: rating === s.value ? 'var(--brand)' : '#9CA3AF' }}>
                 {s.label}
               </span>
             </button>
@@ -78,7 +78,7 @@ export default function FeedbackForm({ mealId, cook, driver }: Props) {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="תודה רבה על הטעם המדהים! ..."
           rows={4}
-          className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right text-zinc-900 bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#811453] resize-none"
+          className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right text-zinc-900 bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] resize-none"
         />
       </div>
 
@@ -92,7 +92,7 @@ export default function FeedbackForm({ mealId, cook, driver }: Props) {
                 onClick={() => setTargetKey(t.id)}
                 className="flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 transition text-right"
                 style={{
-                  borderColor:     targetKey === t.id ? '#811453' : '#F7D4E2',
+                  borderColor:     targetKey === t.id ? 'var(--brand)' : '#F7D4E2',
                   backgroundColor: targetKey === t.id ? '#FFF7FB' : '#fff',
                 }}>
                 <span className="text-base">{targetKey === t.id ? '✓' : '○'}</span>
@@ -103,7 +103,7 @@ export default function FeedbackForm({ mealId, cook, driver }: Props) {
               onClick={() => setTargetKey('__all__')}
               className="flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 transition text-right"
               style={{
-                borderColor:     targetKey === '__all__' ? '#811453' : '#F7D4E2',
+                borderColor:     targetKey === '__all__' ? 'var(--brand)' : '#F7D4E2',
                 backgroundColor: targetKey === '__all__' ? '#FFF7FB' : '#fff',
               }}>
               <span className="text-base">{targetKey === '__all__' ? '✓' : '○'}</span>
@@ -119,7 +119,7 @@ export default function FeedbackForm({ mealId, cook, driver }: Props) {
 
       <button type="button" onClick={handleSubmit} disabled={isPending || !rating}
         className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition disabled:opacity-40"
-        style={{ background: 'linear-gradient(135deg,#811453,#a0185f)', boxShadow: '0 4px 18px rgba(129,20,83,0.30)' }}>
+        style={{ background: 'linear-gradient(135deg,var(--brand),#a0185f)', boxShadow: '0 4px 18px rgba(129,20,83,0.30)' }}>
         {isPending
           ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> שולחת...</>
           : <>💛 שליחת תודה</>}

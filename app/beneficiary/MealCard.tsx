@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation';
 import { confirmMealReceived } from '@/app/actions/meals';
 
 const TYPE_LABELS: Record<string, string> = {
-  breakfast:        'ארוחת בוקר',
-  shabbat_friday:   'שבת ליל',
+  breakfast: 'ארוחת בוקר',
+  shabbat_friday: 'שבת ליל',
   shabbat_saturday: 'שבת צהריים',
 };
 
 // Pipeline Wolt-style
 const PIPELINE = [
-  { key: 'open',            label: 'ממתינה',      icon: '🕐', desc: 'מחפשים מבשלת' },
-  { key: 'cook_assigned',   label: 'מכינים',      icon: '🍲', desc: 'המבשלת מכינה' },
-  { key: 'ready',           label: 'מוכן',        icon: '✅', desc: 'מוכן לאיסוף' },
-  { key: 'driver_assigned', label: 'בדרך',        icon: '🚗', desc: 'מחלקת בדרך' },
-  { key: 'picked_up',       label: 'קרוב!',       icon: '📍', desc: 'בדרך אלייך' },
-  { key: 'delivered',       label: 'הגיע!',       icon: '🎉', desc: 'ממתין לאישורך' },
-  { key: 'confirmed',       label: 'אושר',        icon: '💛', desc: 'תהני!' },
+  { key: 'open', label: 'ממתינה', icon: '🕐', desc: 'מחפשים מבשלת' },
+  { key: 'cook_assigned', label: 'מכינים', icon: '🍲', desc: 'המבשלת מכינה' },
+  { key: 'ready', label: 'מוכן', icon: '✅', desc: 'מוכן לאיסוף' },
+  { key: 'driver_assigned', label: 'בדרך', icon: '🚗', desc: 'מחלקת בדרך' },
+  { key: 'picked_up', label: 'קרוב!', icon: '📍', desc: 'בדרך אלייך' },
+  { key: 'delivered', label: 'הגיע!', icon: '🎉', desc: 'ממתין לאישורך' },
+  { key: 'confirmed', label: 'אושר', icon: '💛', desc: 'תהני!' },
 ];
 
 interface Meal {
@@ -40,7 +40,7 @@ function isTomorrow(dateStr: string): boolean {
 }
 
 function dateLabel(dateStr: string): string {
-  if (isToday(dateStr))    return 'היום';
+  if (isToday(dateStr)) return 'היום';
   if (isTomorrow(dateStr)) return 'מחר';
   return new Date(dateStr).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' });
 }
@@ -49,21 +49,20 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
   const [isPending, start] = useTransition();
   const router = useRouter();
 
-  const stepIdx   = PIPELINE.findIndex((p) => p.key === meal.status);
-  const step      = PIPELINE[stepIdx] ?? PIPELINE[0];
-  const pct       = stepIdx < 0 ? 0 : Math.round(((stepIdx + 1) / PIPELINE.length) * 100);
+  const stepIdx = PIPELINE.findIndex((p) => p.key === meal.status);
+  const step = PIPELINE[stepIdx] ?? PIPELINE[0];
+  const pct = stepIdx < 0 ? 0 : Math.round(((stepIdx + 1) / PIPELINE.length) * 100);
   const isDelivered = meal.status === 'delivered';
   const isConfirmed = meal.status === 'confirmed';
-  const todayMeal   = isToday(meal.date);
 
   if (featured) {
     // ── CARTE PRINCIPALE (aujourd'hui, style Wolt grande carte) ──
     return (
       <div className="overflow-hidden rounded-3xl shadow-2xl"
-           style={{ boxShadow: '0 12px 40px rgba(129,20,83,0.18)' }}>
+        style={{ boxShadow: '0 12px 40px rgba(129,20,83,0.18)' }}>
         {/* Gradient header */}
         <div className="relative px-5 pt-5 pb-4"
-             style={{ background: isDelivered ? 'linear-gradient(135deg, #059669, #10B981)' : isConfirmed ? 'linear-gradient(135deg, #4B5563, #6B7280)' : 'linear-gradient(135deg, #811453, #4A0731)' }}>
+          style={{ background: isDelivered ? 'linear-gradient(135deg, #059669, #10B981)' : isConfirmed ? 'linear-gradient(135deg, #4B5563, #6B7280)' : 'linear-gradient(135deg, var(--brand), #4A0731)' }}>
           <div className="flex items-start justify-between">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-2xl">
               {step.icon}
@@ -86,7 +85,7 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
         <div className="bg-white px-5 pt-4 pb-1">
           <div className="relative h-2 overflow-hidden rounded-full bg-zinc-100">
             <div className="absolute inset-y-0 right-0 rounded-full transition-all duration-700 ease-out"
-                 style={{ width: `${pct}%`, background: isConfirmed ? '#9CA3AF' : 'linear-gradient(90deg, #811453, #F97316)' }} />
+              style={{ width: `${pct}%`, background: isConfirmed ? '#9CA3AF' : 'linear-gradient(90deg, var(--brand), #F97316)' }} />
           </div>
           {/* Step dots */}
           <div className="mt-2 flex justify-between px-0.5">
@@ -95,7 +94,7 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
               return (
                 <div key={p.key} className="flex flex-col items-center gap-0.5">
                   <div className="h-1.5 w-1.5 rounded-full transition-all"
-                       style={{ backgroundColor: done ? '#811453' : '#E5E7EB' }} />
+                    style={{ backgroundColor: done ? 'var(--brand)' : '#E5E7EB' }} />
                 </div>
               );
             })}
@@ -177,11 +176,11 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
   // ── CARTE SECONDAIRE (autres jours, compacte) ──
   return (
     <li className="overflow-hidden rounded-2xl border bg-white transition-all active:scale-[0.99]"
-        style={{ borderColor: '#F0E8EC', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+      style={{ borderColor: '#F0E8EC', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Step icon */}
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-xl"
-             style={{ backgroundColor: isConfirmed ? '#F3F4F6' : '#FBE4F0' }}>
+          style={{ backgroundColor: isConfirmed ? '#F3F4F6' : '#FBE4F0' }}>
           {step.icon}
         </div>
 
@@ -189,8 +188,10 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
         <div className="flex-1 text-right">
           <div className="flex items-center justify-between">
             <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                  style={{ backgroundColor: isConfirmed ? '#F3F4F6' : '#FBE4F0',
-                           color:           isConfirmed ? '#9CA3AF' : '#811453' }}>
+              style={{
+                backgroundColor: isConfirmed ? '#F3F4F6' : '#FBE4F0',
+                color: isConfirmed ? '#9CA3AF' : 'var(--brand)'
+              }}>
               {step.label}
             </span>
             <p className="text-sm font-bold text-zinc-900">{TYPE_LABELS[meal.type] ?? meal.type}</p>
@@ -203,7 +204,7 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
       {/* Mini progress */}
       <div className="mx-4 mb-3 h-1 overflow-hidden rounded-full bg-zinc-100">
         <div className="h-full rounded-full transition-all duration-500"
-             style={{ width: `${pct}%`, backgroundColor: isConfirmed ? '#9CA3AF' : '#811453' }} />
+          style={{ width: `${pct}%`, backgroundColor: isConfirmed ? '#9CA3AF' : 'var(--brand)' }} />
       </div>
 
       {isDelivered && (
@@ -219,7 +220,7 @@ export default function MealCard({ meal, featured = false }: { meal: Meal; featu
             }}
             disabled={isPending}
             className="flex min-h-[44px] w-full items-center justify-center rounded-xl text-sm font-bold text-white transition active:scale-[0.97] disabled:opacity-50"
-            style={{ backgroundColor: '#811453' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {isPending ? '...שומרת' : 'אישור קבלה ✓'}
           </button>

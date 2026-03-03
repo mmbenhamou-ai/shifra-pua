@@ -1,0 +1,33 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "google/gemini-2.5-flash",
+        "fallbacks": ["google/gemini-2.0-flash"]
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "TON_BOT_TOKEN_TELEGRAM",
+      "dmPolicy": "open",
+      "allowFrom": ["*"],
+      "groups": { "*": { "requireMention": true } }
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": {
+      "dangerouslyAllowHostHeaderOriginFallback": true
+    },
+    "auth": {
+      "token": "REMPLACER_TOKEN_GATEWAY_FORT"
+    }
+  },
+  "meta": {
+    "lastTouchedVersion": "2026.2.26",
+    "lastTouchedAt": "2026-03-01T14:40:00.000Z"
+  }
+}

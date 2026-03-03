@@ -22,7 +22,7 @@ export default async function MenusPage() {
   return (
     <div className="space-y-6 pb-2" dir="rtl">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>
           תפריטים
         </h1>
         <p className="text-sm" style={{ color: '#7C365F' }}>
@@ -41,7 +41,7 @@ export default async function MenusPage() {
 
       {/* רשימת תפריטים */}
       <section className="space-y-3">
-        <h2 className="text-base font-semibold" style={{ color: '#811453' }}>
+        <h2 className="text-base font-semibold" style={{ color: 'var(--brand)' }}>
           תפריטים קיימים
         </h2>
 
@@ -69,7 +69,7 @@ export default async function MenusPage() {
                     </span>
                     <span
                       className="rounded-full px-2 py-0.5 text-xs"
-                      style={{ backgroundColor: '#FBE4F0', color: '#811453' }}
+                      style={{ backgroundColor: '#FBE4F0', color: 'var(--brand)' }}
                     >
                       {TYPE_LABELS[m.type as string] ?? m.type}
                     </span>
@@ -88,7 +88,7 @@ export default async function MenusPage() {
                       className="min-h-[40px] rounded-full border px-4 text-xs font-semibold transition active:opacity-80"
                       style={{
                         borderColor: '#F7D4E2',
-                        color: '#811453',
+                        color: 'var(--brand)',
                         backgroundColor: '#FFFFFF',
                       }}
                     >

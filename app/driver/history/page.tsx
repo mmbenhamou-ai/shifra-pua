@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import Link from 'next/link';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -9,10 +10,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default async function DriverHistoryPage() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { session } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
 
+  const supabase = await createSupabaseServerClient();
   const { data: meals } = await supabase
     .from('meals')
     .select(`
@@ -29,14 +30,14 @@ export default async function DriverHistoryPage() {
   return (
     <div className="space-y-5 pb-8" dir="rtl">
       <div className="flex items-center justify-between">
-        <Link href="/driver" className="text-sm font-medium" style={{ color: '#811453' }}>← חזרה</Link>
-        <h1 className="text-xl font-bold" style={{ color: '#811453' }}>היסטוריית חלוקות</h1>
+        <Link href="/driver" className="text-sm font-medium" style={{ color: 'var(--brand)' }}>← חזרה</Link>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--brand)' }}>היסטוריית חלוקות</h1>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 text-right shadow-sm">
           <p className="text-[10px] text-zinc-500">סה״כ משלוחים</p>
-          <p className="text-3xl font-extrabold" style={{ color: '#811453' }}>{list.length}</p>
+          <p className="text-3xl font-extrabold" style={{ color: 'var(--brand)' }}>{list.length}</p>
         </div>
         <div className="rounded-2xl border border-[#F7D4E2] bg-white p-4 text-right shadow-sm">
           <p className="text-[10px] text-zinc-500">נמסרו בהצלחה</p>

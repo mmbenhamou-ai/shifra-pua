@@ -54,7 +54,7 @@ function inputCls(err: boolean) {
   return [
     'w-full rounded-xl border px-3 py-3 text-right text-sm text-zinc-900 bg-white',
     'placeholder:text-gray-400 focus:outline-none focus:ring-2',
-    err ? 'border-red-400 focus:ring-red-300' : 'border-[#F7D4E2] focus:ring-[#811453]',
+    err ? 'border-red-400 focus:ring-red-300' : 'border-[#F7D4E2] focus:ring-[var(--brand)]',
   ].join(' ');
 }
 
@@ -85,7 +85,7 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
       <div className="h-2 w-full rounded-full bg-[#FBE4F0]">
         <div
           className="h-2 rounded-full transition-all duration-300"
-          style={{ width: `${pct}%`, backgroundColor: '#811453' }}
+          style={{ width: `${pct}%`, backgroundColor: 'var(--brand)' }}
         />
       </div>
     </div>
@@ -108,7 +108,7 @@ function NavButtons({
       {onBack && (
         <button type="button" onClick={onBack}
           className="min-h-[52px] flex-1 rounded-full border text-sm font-semibold transition"
-          style={{ borderColor: '#F7D4E2', color: '#811453', backgroundColor: '#fff' }}>
+          style={{ borderColor: '#F7D4E2', color: 'var(--brand)', backgroundColor: '#fff' }}>
           ← חזרה
         </button>
       )}
@@ -117,7 +117,7 @@ function NavButtons({
         onClick={onNext}
         disabled={nextDisabled || pending}
         className="min-h-[52px] flex-[2] rounded-full text-sm font-semibold text-white transition disabled:opacity-40"
-        style={{ backgroundColor: '#811453' }}>
+        style={{ backgroundColor: 'var(--brand)' }}>
         {pending ? 'שולחת...' : nextLabel}
       </button>
     </div>
@@ -245,8 +245,8 @@ export default function SignupPage() {
     <div className="min-h-screen flex flex-col" dir="rtl"
          style={{ background: 'linear-gradient(to bottom, #FFF7FB, #FBE4F0)' }}>
 
-      <header className="w-full px-4 py-3 shadow-md" style={{ backgroundColor: '#811453' }}>
-        <h1 className="text-xl font-bold text-white text-right">שפרה פועה — הרשמה</h1>
+      <header className="w-full px-4 py-3 shadow-md" style={{ backgroundColor: 'var(--brand)' }}>
+        <h1 className="text-xl font-bold text-white text-right">שפרה ופועה — הרשמה</h1>
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-6 space-y-6">
@@ -255,7 +255,7 @@ export default function SignupPage() {
         {step === 1 && (
           <div className="space-y-5">
             <div className="space-y-1 text-right">
-              <h2 className="text-xl font-bold" style={{ color: '#811453' }}>ברוכה הבאה! 💛</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--brand)' }}>ברוכה הבאה! 💛</h2>
               <p className="text-sm text-zinc-500">ספרי לנו קצת עלייך</p>
             </div>
             <div className="flex flex-col gap-4">
@@ -264,9 +264,9 @@ export default function SignupPage() {
                 onClick={() => { setCategory('beneficiary'); setRole('beneficiary'); }}
                 className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
                 style={{
-                  borderColor:     category === 'beneficiary' ? '#811453' : '#F7D4E2',
+                  borderColor:     category === 'beneficiary' ? 'var(--brand)' : '#F7D4E2',
                   backgroundColor: category === 'beneficiary' ? '#FFF7FB' : '#FFFFFF',
-                  boxShadow: category === 'beneficiary' ? '0 0 0 2px #811453' : 'none',
+                  boxShadow: category === 'beneficiary' ? '0 0 0 2px var(--brand)' : 'none',
                 }}>
                 <span className="text-3xl">👶</span>
                 <div className="flex flex-col items-end gap-0.5">
@@ -280,9 +280,9 @@ export default function SignupPage() {
                 onClick={() => { setCategory('volunteer'); setRole(null); }}
                 className="flex items-center justify-between rounded-2xl border-2 p-5 text-right transition active:scale-[0.99]"
                 style={{
-                  borderColor:     category === 'volunteer' ? '#811453' : '#F7D4E2',
+                  borderColor:     category === 'volunteer' ? 'var(--brand)' : '#F7D4E2',
                   backgroundColor: category === 'volunteer' ? '#FFF7FB' : '#FFFFFF',
-                  boxShadow: category === 'volunteer' ? '0 0 0 2px #811453' : 'none',
+                  boxShadow: category === 'volunteer' ? '0 0 0 2px var(--brand)' : 'none',
                 }}>
                 <span className="text-3xl">💛</span>
                 <div className="flex flex-col items-end gap-0.5">
@@ -307,12 +307,12 @@ export default function SignupPage() {
                       onClick={() => opt.set(!opt.val)}
                       className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
                       style={{
-                        borderColor:     opt.val ? '#811453' : '#F7D4E2',
+                        borderColor:     opt.val ? 'var(--brand)' : '#F7D4E2',
                         backgroundColor: opt.val ? '#FFF7FB' : '#FAFAFA',
                       }}>
                       <div className="flex items-center gap-2">
                         <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                             style={{ borderColor: opt.val ? '#811453' : '#D1D5DB', backgroundColor: opt.val ? '#811453' : '#fff' }}>
+                             style={{ borderColor: opt.val ? 'var(--brand)' : '#D1D5DB', backgroundColor: opt.val ? 'var(--brand)' : '#fff' }}>
                           {opt.val && <span className="text-white text-xs font-bold">✓</span>}
                         </div>
                       </div>
@@ -354,7 +354,7 @@ export default function SignupPage() {
         {/* ── STEP 2 — infos personnelles ── */}
         {role === 'beneficiary' && step === 2 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>פרטים אישיים</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>פרטים אישיים</h2>
 
             <Field label="שם מלא *">
               <input value={data.name} onChange={(e) => set('name', e.target.value)}
@@ -405,17 +405,29 @@ export default function SignupPage() {
         {/* ── STEP 3 — composition du foyer ── */}
         {role === 'beneficiary' && step === 3 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>הרכב המשפחה</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>הרכב המשפחה</h2>
             <p className="text-sm text-zinc-500 text-right">כדי לדעת כמה מנות להכין</p>
 
             <Field label="מספר מבוגרים *">
-              <input type="number" min="1" max="10" dir="ltr"
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                min="1"
+                max="10"
+                dir="ltr"
                 value={data.num_adults} onChange={(e) => set('num_adults', e.target.value)}
                 className={inputCls(false)} />
             </Field>
 
             <Field label="מספר ילדים">
-              <input type="number" min="0" max="15" dir="ltr"
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                min="0"
+                max="15"
+                dir="ltr"
                 value={data.num_children} onChange={(e) => set('num_children', e.target.value)}
                 className={inputCls(false)} />
             </Field>
@@ -427,14 +439,14 @@ export default function SignupPage() {
         {/* ── STEP 4 — préférences alimentaires ── */}
         {role === 'beneficiary' && step === 4 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>העדפות אכילה</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>העדפות אכילה</h2>
 
             {/* Végétarien */}
-            <button type="button"
+              <button type="button"
               onClick={() => set('is_vegetarian', !data.is_vegetarian)}
               className="flex w-full items-center justify-between rounded-2xl border-2 p-4 transition"
               style={{
-                borderColor:     data.is_vegetarian ? '#811453' : '#F7D4E2',
+                borderColor:     data.is_vegetarian ? 'var(--brand)' : '#F7D4E2',
                 backgroundColor: data.is_vegetarian ? '#FFF7FB' : '#fff',
               }}>
               <span className="text-2xl">🥗</span>
@@ -457,8 +469,8 @@ export default function SignupPage() {
                     onClick={() => set('spicy_level', opt.val)}
                     className="flex-1 rounded-full py-2 text-sm font-medium transition"
                     style={{
-                      backgroundColor: data.spicy_level === opt.val ? '#811453' : '#FBE4F0',
-                      color:           data.spicy_level === opt.val ? '#fff'    : '#811453',
+                      backgroundColor: data.spicy_level === opt.val ? 'var(--brand)' : '#FBE4F0',
+                      color:           data.spicy_level === opt.val ? '#fff'    : 'var(--brand)',
                     }}>
                     {opt.label}
                   </button>
@@ -482,7 +494,7 @@ export default function SignupPage() {
         {/* ── STEP 5 — petits-déjeuners (dates) ── */}
         {role === 'beneficiary' && step === 5 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>ארוחות בוקר</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>ארוחות בוקר</h2>
             <p className="text-sm text-zinc-500 text-right">
               תקבלי ארוחת בוקר כל יום לאחר האישור. בחרי מאיזה תאריך להתחיל.
             </p>
@@ -508,7 +520,7 @@ export default function SignupPage() {
         {/* ── STEP 6 — Shabbat ── */}
         {role === 'beneficiary' && step === 6 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>ארוחות שבת</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>ארוחות שבת</h2>
             <p className="text-sm text-zinc-500 text-right">בחרי אילו ארוחות שבת תרצי לקבל</p>
 
             {[
@@ -519,13 +531,13 @@ export default function SignupPage() {
                 onClick={() => set(opt.key, !data[opt.key])}
                 className="flex w-full items-center justify-between rounded-2xl border-2 p-4 transition"
                 style={{
-                  borderColor:     data[opt.key] ? '#811453' : '#F7D4E2',
+                  borderColor:     data[opt.key] ? 'var(--brand)' : '#F7D4E2',
                   backgroundColor: data[opt.key] ? '#FFF7FB' : '#fff',
                 }}>
                 <span className="text-2xl">{opt.emoji}</span>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-zinc-900">{opt.label}</p>
-                  {data[opt.key] && <span className="text-[#811453] text-xl">✓</span>}
+                  {data[opt.key] && <span className="text-[var(--brand)] text-xl">✓</span>}
                 </div>
               </button>
             ))}
@@ -539,8 +551,8 @@ export default function SignupPage() {
                     onClick={() => set('shabbat_kashrut', k)}
                     className="rounded-full py-2 text-sm font-medium transition"
                     style={{
-                      backgroundColor: data.shabbat_kashrut === k ? '#811453' : '#FBE4F0',
-                      color:           data.shabbat_kashrut === k ? '#fff'    : '#811453',
+                      backgroundColor: data.shabbat_kashrut === k ? 'var(--brand)' : '#FBE4F0',
+                      color:           data.shabbat_kashrut === k ? '#fff'    : 'var(--brand)',
                     }}>
                     {k}
                   </button>
@@ -555,7 +567,7 @@ export default function SignupPage() {
         {/* ── STEP 7 — récapitulatif + confirmation ── */}
         {role === 'beneficiary' && step === 7 && (
           <div className="space-y-5">
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>סיכום הרשמה</h2>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>סיכום הרשמה</h2>
             <p className="text-sm text-zinc-500 text-right">בדקי שהפרטים נכונים לפני השליחה</p>
 
             <div className="rounded-2xl border border-[#F7D4E2] bg-white divide-y divide-[#FBE4F0] text-right text-sm">
@@ -595,7 +607,7 @@ export default function SignupPage() {
           <form onSubmit={submitVolunteer} noValidate className="space-y-5">
             <input type="hidden" name="role" value={effectiveRole} />
 
-            <h2 className="text-xl font-bold text-right" style={{ color: '#811453' }}>
+            <h2 className="text-xl font-bold text-right" style={{ color: 'var(--brand)' }}>
               פרטים אישיים —{' '}
               {alsoDriver ? 'מבשלת ומחלקת' : wantCook ? 'מבשלת' : 'מחלקת'}
             </h2>
@@ -656,7 +668,7 @@ export default function SignupPage() {
                       <input type="radio" name="has_car" value={opt.value}
                         checked={cvHasCar === opt.value}
                         onChange={() => setCvHasCar(opt.value)}
-                        className="accent-[#811453]" />
+                        className="accent-[var(--brand)]" />
                       {opt.label}
                     </label>
                   ))}
@@ -673,9 +685,9 @@ export default function SignupPage() {
                 {wantCook && (
                   <button type="button" onClick={() => setNotifCook(!notifCook)}
                     className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
-                    style={{ borderColor: notifCook ? '#811453' : '#F7D4E2', backgroundColor: notifCook ? '#FFF7FB' : '#FAFAFA' }}>
+                    style={{ borderColor: notifCook ? 'var(--brand)' : '#F7D4E2', backgroundColor: notifCook ? '#FFF7FB' : '#FAFAFA' }}>
                     <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                         style={{ borderColor: notifCook ? '#811453' : '#D1D5DB', backgroundColor: notifCook ? '#811453' : '#fff' }}>
+                         style={{ borderColor: notifCook ? 'var(--brand)' : '#D1D5DB', backgroundColor: notifCook ? 'var(--brand)' : '#fff' }}>
                       {notifCook && <span className="text-white text-xs font-bold">✓</span>}
                     </div>
                     <div className="text-right">
@@ -687,9 +699,9 @@ export default function SignupPage() {
                 {wantDriver && (
                   <button type="button" onClick={() => setNotifDrv(!notifDrv)}
                     className="flex items-center justify-between rounded-xl border-2 p-3 text-right transition"
-                    style={{ borderColor: notifDrv ? '#811453' : '#F7D4E2', backgroundColor: notifDrv ? '#FFF7FB' : '#FAFAFA' }}>
+                    style={{ borderColor: notifDrv ? 'var(--brand)' : '#F7D4E2', backgroundColor: notifDrv ? '#FFF7FB' : '#FAFAFA' }}>
                     <div className="flex h-5 w-5 items-center justify-center rounded border-2 transition"
-                         style={{ borderColor: notifDrv ? '#811453' : '#D1D5DB', backgroundColor: notifDrv ? '#811453' : '#fff' }}>
+                         style={{ borderColor: notifDrv ? 'var(--brand)' : '#D1D5DB', backgroundColor: notifDrv ? 'var(--brand)' : '#fff' }}>
                       {notifDrv && <span className="text-white text-xs font-bold">✓</span>}
                     </div>
                     <div className="text-right">

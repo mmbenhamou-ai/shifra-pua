@@ -10,13 +10,13 @@ export default function NotFound() {
       <div className="space-y-6 max-w-sm w-full">
         <div
           className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl text-4xl font-extrabold text-white shadow-lg"
-          style={{ backgroundColor: '#811453' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           404
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>
             הדף לא נמצא
           </h1>
           <p className="text-base leading-relaxed" style={{ color: '#4A0731' }}>
@@ -29,7 +29,7 @@ export default function NotFound() {
         <Link
           href="/"
           className="block min-h-[52px] w-full rounded-2xl pt-3 text-center text-base font-bold text-white shadow-md transition active:scale-[0.98]"
-          style={{ backgroundColor: '#811453' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           חזרה לדף הראשי ←
         </Link>
@@ -37,7 +37,7 @@ export default function NotFound() {
         <Link
           href="/login"
           className="block text-sm font-medium underline transition active:opacity-70"
-          style={{ color: '#811453' }}
+          style={{ color: 'var(--brand)' }}
         >
           כניסה למערכת
         </Link>

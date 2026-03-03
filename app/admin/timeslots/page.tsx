@@ -53,26 +53,26 @@ export default async function TimeSlotsPage() {
   return (
     <div className="space-y-6 pb-8" dir="rtl">
       <header>
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>חלונות זמן</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>חלונות זמן</h1>
         <p className="text-sm text-zinc-500 mt-0.5">הגדרת שעות איסוף ומסירה לכל סוג ארוחה</p>
       </header>
 
       {/* ── טופס יצירה ── */}
       <form action={createSlot} className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
         <div className="bg-[#FBE4F0] px-4 py-2.5">
-          <p className="text-sm font-bold text-right" style={{ color: '#811453' }}>+ חלון זמן חדש</p>
+          <p className="text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>+ חלון זמן חדש</p>
         </div>
         <div className="space-y-3 px-4 py-4">
           <div className="flex flex-col items-end gap-1">
             <label className="text-xs font-medium text-zinc-700">שם (לדוגמה: בוקר מוקדם)</label>
             <input name="label" required placeholder="בוקר מוקדם"
-                   className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+                   className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
           </div>
 
           <div className="flex flex-col items-end gap-1">
             <label className="text-xs font-medium text-zinc-700">סוג ארוחה</label>
             <select name="meal_type" required
-                    className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[#811453]">
+                    className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-right focus:outline-none focus:ring-1 focus:ring-[var(--brand)]">
               {Object.entries(MEAL_TYPE_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
               ))}
@@ -83,24 +83,24 @@ export default async function TimeSlotsPage() {
             <div className="flex flex-col items-end gap-1">
               <label className="text-xs font-medium text-zinc-700">שעת איסוף</label>
               <input name="pickup_time" type="time" required defaultValue="07:30" dir="ltr"
-                     className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+                     className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
             </div>
             <div className="flex flex-col items-end gap-1">
               <label className="text-xs font-medium text-zinc-700">שעת מסירה</label>
               <input name="delivery_time" type="time" required defaultValue="08:30" dir="ltr"
-                     className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+                     className="w-full rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-1">
             <label className="text-xs font-medium text-zinc-700">מקסימום הזמנות בחלון זה</label>
             <input name="max_per_slot" type="number" min="1" max="50" defaultValue="5" dir="ltr"
-                   className="w-24 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-[#811453]" />
+                   className="w-24 rounded-xl border border-[#F7D4E2] px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-[var(--brand)]" />
           </div>
 
           <button type="submit"
                   className="w-full min-h-[48px] rounded-full text-sm font-semibold text-white transition active:opacity-90"
-                  style={{ backgroundColor: '#811453' }}>
+                  style={{ backgroundColor: 'var(--brand)' }}>
             הוספה +
           </button>
         </div>
@@ -111,7 +111,7 @@ export default async function TimeSlotsPage() {
         const typeSlots = grouped[type] ?? [];
         return (
           <section key={type} className="space-y-2">
-            <h2 className="text-sm font-bold text-right" style={{ color: '#811453' }}>{typeLabel}</h2>
+            <h2 className="text-sm font-bold text-right" style={{ color: 'var(--brand)' }}>{typeLabel}</h2>
             {typeSlots.length === 0 ? (
               <p className="text-xs text-zinc-400 text-right">אין חלונות זמן מוגדרים לסוג זה.</p>
             ) : (

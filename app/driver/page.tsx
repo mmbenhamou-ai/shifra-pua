@@ -1,21 +1,22 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
+import { getSessionOrDevBypass } from '@/lib/auth-dev';
 import NavButtons from './NavButtons';
 import { TakeDeliveryButton, PickedUpButton, DeliveredButton } from './DriverActions';
 import ReleaseButton from './ReleaseButton';
 import Link from 'next/link';
 
 const TYPE_LABELS: Record<string, string> = {
-  breakfast:        'ארוחת בוקר',
-  shabbat_friday:   'שבת ליל',
+  breakfast: 'ארוחת בוקר',
+  shabbat_friday: 'שבת ליל',
   shabbat_saturday: 'שבת צהריים',
 };
 
 // שלבי המשלוח בסגנון Wolt
 const DELIVERY_STEPS = [
-  { key: 'driver_assigned', label: 'קיבלתי משלוח',  icon: '🚗' },
-  { key: 'picked_up',       label: 'אספתי',          icon: '📦' },
-  { key: 'delivered',       label: 'נמסר',           icon: '✅' },
+  { key: 'driver_assigned', label: 'קיבלתי משלוח', icon: '🚗' },
+  { key: 'picked_up', label: 'אספתי', icon: '📦' },
+  { key: 'delivered', label: 'נמסר', icon: '✅' },
 ];
 
 function DeliveryProgress({ status }: { status: string }) {
@@ -28,20 +29,20 @@ function DeliveryProgress({ status }: { status: string }) {
       <div className="relative h-1.5 rounded-full bg-zinc-100">
         <div
           className="absolute inset-y-0 right-0 rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #811453, #F97316)' }}
+          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--brand), #F97316)' }}
         />
       </div>
       {/* steps */}
       <div className="flex items-start justify-between">
         {DELIVERY_STEPS.map((step, i) => {
-          const done    = i <= stepIdx;
+          const done = i <= stepIdx;
           const current = i === stepIdx;
           return (
             <div key={step.key} className="flex flex-1 flex-col items-center gap-1">
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-full text-base transition-all duration-300"
                 style={{
-                  backgroundColor: done ? '#811453' : '#F3F4F6',
+                  backgroundColor: done ? 'var(--brand)' : '#F3F4F6',
                   boxShadow: current ? '0 0 0 3px rgba(129,20,83,0.2)' : 'none',
                   transform: current ? 'scale(1.15)' : 'scale(1)',
                 }}
@@ -54,7 +55,7 @@ function DeliveryProgress({ status }: { status: string }) {
               </div>
               <span
                 className="text-center text-[10px] font-semibold leading-tight"
-                style={{ color: done ? '#811453' : '#9CA3AF' }}
+                style={{ color: done ? 'var(--brand)' : '#9CA3AF' }}
               >
                 {step.label}
               </span>
@@ -66,15 +67,25 @@ function DeliveryProgress({ status }: { status: string }) {
   );
 }
 
-export default async function DriverDashboard() {
-  const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+const AVAIL_PAGE_SIZE = 10;
+
+export default async function DriverDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { session } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
-
   const userId = session.user.id;
-  const today  = new Date().toISOString().split('T')[0];
 
-  const [{ data: myDeliveries }, { data: available }] = await Promise.all([
+  const supabase = await createSupabaseServerClient();
+  const today = new Date().toISOString().split('T')[0];
+  const { page: availPageStr = '1' } = await searchParams;
+  const availPage = Math.max(1, parseInt(availPageStr, 10) || 1);
+  const availFrom = (availPage - 1) * AVAIL_PAGE_SIZE;
+  const availTo = availFrom + AVAIL_PAGE_SIZE - 1;
+
+  const [{ data: myDeliveries }, { data: available, count: totalAvailable = 0 }] = await Promise.all([
     supabase
       .from('meals')
       .select(`id, date, type, status, pickup_time, delivery_time,
@@ -86,16 +97,21 @@ export default async function DriverDashboard() {
 
     supabase
       .from('meals')
-      .select(`id, date, type, status, pickup_time, delivery_time,
+      .select(
+        `id, date, type, status, pickup_time, delivery_time,
         cook:cook_id(name, address),
-        beneficiary:beneficiary_id(user:user_id(name, phone, address))`)
+        beneficiary:beneficiary_id(user:user_id(name, phone, address))`,
+        { count: 'exact' },
+      )
       .eq('status', 'ready')
       .gte('date', today)
-      .order('date', { ascending: true }),
+      .order('date', { ascending: true })
+      .range(availFrom, availTo),
   ]);
 
-  const mine  = myDeliveries ?? [];
+  const mine = myDeliveries ?? [];
   const avail = available ?? [];
+  const totalAvailPages = Math.max(1, Math.ceil((totalAvailable ?? 0) / AVAIL_PAGE_SIZE));
 
   return (
     <div className="space-y-6 pb-24" dir="rtl">
@@ -103,7 +119,7 @@ export default async function DriverDashboard() {
       {/* ── כותרת ── */}
       <header className="space-y-1 pt-1">
         <div className="flex items-center justify-between">
-          <Link href="/driver/history" className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: '#811453' }}>
+          <Link href="/driver/history" className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold shadow-sm" style={{ color: 'var(--brand)' }}>
             היסטוריה →
           </Link>
           <div>
@@ -121,22 +137,22 @@ export default async function DriverDashboard() {
       {mine.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: '#811453' }}>{mine.length}</span>
-            <h3 className="text-base font-bold" style={{ color: '#811453' }}>משלוחים פעילים</h3>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>{mine.length}</span>
+            <h3 className="text-base font-bold" style={{ color: 'var(--brand)' }}>משלוחים פעילים</h3>
           </div>
 
           {mine.map((meal) => {
             const cook = meal.cook as { name?: string; address?: string } | null;
-            const ben  = (meal.beneficiary as { user?: { name?: string; phone?: string; address?: string } } | null)?.user;
+            const ben = (meal.beneficiary as { user?: { name?: string; phone?: string; address?: string } } | null)?.user;
             const isPickedUp = meal.status === 'picked_up';
 
             return (
               <div key={meal.id as string}
-                   className="overflow-hidden rounded-3xl bg-white shadow-xl"
-                   style={{ boxShadow: '0 8px 32px rgba(129,20,83,0.12)' }}>
+                className="overflow-hidden rounded-3xl bg-white shadow-xl"
+                style={{ boxShadow: '0 8px 32px rgba(129,20,83,0.12)' }}>
 
                 {/* header strip */}
-                <div className="px-5 pt-4 pb-3" style={{ background: 'linear-gradient(135deg, #811453 0%, #4A0731 100%)' }}>
+                <div className="px-5 pt-4 pb-3" style={{ background: 'linear-gradient(135deg, var(--brand) 0%, #4A0731 100%)' }}>
                   <div className="flex items-start justify-between">
                     <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
                       {new Date(meal.date as string).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' })}
@@ -173,8 +189,8 @@ export default async function DriverDashboard() {
                         {ben.address && <NavButtons address={ben.address} label="נווט" compact />}
                         {ben.phone && (
                           <a href={`tel:${ben.phone}`}
-                             className="flex h-9 w-9 items-center justify-center rounded-full text-base"
-                             style={{ backgroundColor: '#FBE4F0' }}>📞</a>
+                            className="flex h-9 w-9 items-center justify-center rounded-full text-base"
+                            style={{ backgroundColor: '#FBE4F0' }}>📞</a>
                         )}
                       </div>
                       <div className="text-right">
@@ -204,7 +220,7 @@ export default async function DriverDashboard() {
                       <ReleaseButton mealId={meal.id as string} />
                     </>
                   )}
-                  {isPickedUp  && <DeliveredButton mealId={meal.id as string} />}
+                  {isPickedUp && <DeliveredButton mealId={meal.id as string} />}
                 </div>
               </div>
             );
@@ -216,36 +232,40 @@ export default async function DriverDashboard() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: avail.length > 0 ? '#FEF3C7' : '#F3F4F6',
-                         color: avail.length > 0 ? '#92400E' : '#9CA3AF' }}>
-            {avail.length > 0 ? `${avail.length} פנויים` : 'הכל מכוסה'}
+            style={{
+              backgroundColor: (totalAvailable ?? 0) > 0 ? '#FEF3C7' : '#F3F4F6',
+              color: (totalAvailable ?? 0) > 0 ? '#92400E' : '#9CA3AF'
+            }}>
+            {(totalAvailable ?? 0) > 0 ? `${totalAvailable} פנויים` : 'הכל מכוסה'}
           </span>
-          <h3 className="text-base font-bold" style={{ color: '#811453' }}>משלוחים זמינים</h3>
+          <h3 className="text-base font-bold" style={{ color: 'var(--brand)' }}>משלוחים זמינים</h3>
         </div>
 
         {avail.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#F7D4E2] bg-white py-12 text-center">
             <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#FBE4F0] text-3xl">🎉</div>
-            <p className="text-base font-semibold" style={{ color: '#811453' }}>כל המשלוחים מכוסים!</p>
+            <p className="text-base font-semibold" style={{ color: 'var(--brand)' }}>כל המשלוחים מכוסים!</p>
             <p className="mt-1 text-sm text-zinc-400">תודה על המסירות שלך 💛</p>
           </div>
         ) : (
           <div className="space-y-3">
             {avail.map((meal) => {
               const cook = meal.cook as { name?: string; address?: string } | null;
-              const ben  = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
+              const ben = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
               const isReady = meal.status === 'ready';
 
               return (
                 <div key={meal.id as string}
-                     className="overflow-hidden rounded-2xl border bg-white transition-all active:scale-[0.99]"
-                     style={{ borderColor: '#F0E6EC', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                  className="overflow-hidden rounded-2xl border bg-white transition-all active:scale-[0.99]"
+                  style={{ borderColor: '#F0E6EC', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
 
                   {/* top bar */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
                     <span className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                          style={{ backgroundColor: isReady ? '#D1FAE5' : '#FEF3C7',
-                                   color:           isReady ? '#065F46' : '#B45309' }}>
+                      style={{
+                        backgroundColor: isReady ? '#D1FAE5' : '#FEF3C7',
+                        color: isReady ? '#065F46' : '#B45309'
+                      }}>
                       {isReady ? '✓ מוכן לאיסוף' : 'ממתין'}
                     </span>
                     <div className="text-right">
@@ -260,7 +280,7 @@ export default async function DriverDashboard() {
                   <div className="px-4 py-3 space-y-1.5">
                     {cook?.address && (
                       <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: '#811453' }} />
+                        <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--brand)' }} />
                         <p className="text-xs text-zinc-600 flex-1 text-right">{cook.address} · {cook.name}</p>
                       </div>
                     )}
@@ -281,6 +301,18 @@ export default async function DriverDashboard() {
                 </div>
               );
             })}
+
+            {availPage < totalAvailPages && (
+              <div className="pt-1">
+                <Link
+                  href={`/driver?page=${availPage + 1}`}
+                  className="flex w-full items-center justify-center rounded-2xl border border-[#F7D4E2] bg-white py-2.5 text-sm font-semibold"
+                  style={{ color: 'var(--brand)' }}
+                >
+                  טעני עוד
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </section>

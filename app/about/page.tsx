@@ -2,97 +2,98 @@ import Link from 'next/link';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen pb-10" dir="rtl"
-         style={{ background: 'linear-gradient(to bottom, #FFF7FB, #FBE4F0)' }}>
-      <header className="w-full px-4 py-4 shadow-md" style={{ backgroundColor: '#811453' }}>
-        <div className="mx-auto flex max-w-md items-center justify-between">
-          <Link href="/" className="text-sm text-[#F7D4E2] active:opacity-70">← חזרה</Link>
-          <h1 className="text-xl font-bold text-white">אודות שפרה פועה</h1>
-          <span className="w-12" />
+    <div className="min-h-screen pb-10 bg-white text-[#403728]" dir="rtl">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#91006A]/10">
+        <div className="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="p-2 text-[#91006A] rounded-full hover:bg-[#91006A]/5">
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </Link>
+          <h1 className="text-lg font-bold text-[#91006A]">אודות</h1>
+          <button type="button" className="p-2 text-[#91006A]">
+            <span className="material-symbols-outlined">share</span>
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-6 space-y-6">
-        {/* Hero */}
-        <div className="text-center space-y-3">
-          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full text-4xl"
-               style={{ background: 'linear-gradient(135deg, #811453, #4A0731)' }}>
-            <span className="text-white font-bold text-2xl">שפ</span>
+      <main className="max-w-xl mx-auto w-full relative overflow-hidden">
+        <div className="px-4 py-8 relative z-10">
+          {/* Hero image block – Stitch */}
+          <div className="mb-8 overflow-hidden shadow-2xl shadow-[#91006A]/20 aspect-[16/9] relative rounded-2xl">
+            <div className="absolute inset-0 bg-gradient-to-t from-[#91006A]/60 to-transparent flex items-end p-6">
+              <h2 className="text-white text-3xl font-bold leading-tight">ארגון שפרה ופועה</h2>
+            </div>
+            <div className="w-full h-full bg-[#91006A]/10" />
           </div>
-          <h2 className="text-2xl font-extrabold" style={{ color: '#811453' }}>עמותת שפרה פועה</h2>
-          <p className="text-sm text-zinc-600 leading-relaxed">
-            מחברות בין לבבות, מגשרות בין צרכים ומנות חמות
-          </p>
-        </div>
 
-        {/* Mission */}
-        <div className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
-          <div className="bg-[#FBE4F0] px-5 py-3">
-            <h3 className="font-bold text-right" style={{ color: '#811453' }}>🎯 המשימה שלנו</h3>
-          </div>
-          <div className="px-5 py-4 text-right">
-            <p className="text-sm text-zinc-700 leading-relaxed">
-              אנחנו מאמינות שכל אישה אחרי לידה זכאית לתמיכה, חמימות ומנוחה.
-              עמותת שפרה פועה מארגנת מתנדבות מהקהילה — מבשלות ומחלקות — שמבשלות
-              ומביאות ארוחות טריות לבתי היולדות מדי יום.
+          <div className="space-y-6 text-slate-800 leading-relaxed text-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-1 w-12 bg-[#91006A] rounded-full" />
+              <span className="text-[#91006A] font-bold tracking-wide uppercase text-sm">סיפור המעשה שלנו</span>
+            </div>
+            <p className="font-medium text-xl text-[#91006A]/90">
+              ארגון שפרה ופועה נוסד בשנת תשל&quot;ז (1977) ביוזמת הרבי מליובאוויטש, מתוך חזון ללוות יולדות ולתמוך בהן בכל הנדרש – &quot;מחיתול ועד עגלה&quot;.
+            </p>
+            <div className="p-6 bg-[#91006A]/5 border-r-4 border-[#91006A] italic rounded-2xl">
+              <p className="text-[#403728]">
+                שם הארגון ניתן על שם שתי המיילדות העבריות במצרים, שפרה ופועה, שבמסירות נפש שמרו על חיי העם גם בתנאים קשים – ובזכותן זכינו להיגאל.
+              </p>
+            </div>
+            <p className="text-[#403728]">
+              מתוך החזון הזה נולד מיזם ארוחות הבוקר ליולדת: ארוחות מזינות, מושקעות וארוזות בקפידה, המוכנות על ידי מתנדבות מסורות ומובאות עד בית היולדת.
+            </p>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="p-4 rounded-2xl bg-[#f8f5f8] border border-[#91006A]/20 text-center">
+                <span className="material-symbols-outlined text-[#91006A] text-3xl mb-2 block">restaurant</span>
+                <p className="text-sm font-bold text-[#403728]">ארוחות בוקר</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#f8f5f8] border border-[#91006A]/20 text-center">
+                <span className="material-symbols-outlined text-[#91006A] text-3xl mb-2 block">volunteer_activism</span>
+                <p className="text-sm font-bold text-[#403728]">תמיכה רגשית</p>
+              </div>
+            </div>
+            <p className="text-[#403728]">
+              כיום פועל המיזם ברחבי הארץ ובעולם, ולצידו מתקיימות גם סעודות שבת ליולדות ולמשפחותיהן.
             </p>
           </div>
-        </div>
 
-        {/* How it works */}
-        <div className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
-          <div className="bg-[#FBE4F0] px-5 py-3">
-            <h3 className="font-bold text-right" style={{ color: '#811453' }}>⚙️ איך זה עובד</h3>
+          <div className="mt-12 mb-8 pt-8 border-t border-[#91006A]/10 flex flex-col items-center gap-4">
+            <Link
+              href="/donate"
+              className="w-full bg-[#91006A] hover:bg-[#91006A]/90 text-white font-bold py-4 transition-all shadow-lg shadow-[#91006A]/25 flex items-center justify-center gap-2 rounded-lg"
+            >
+              <span className="material-symbols-outlined">favorite</span>
+              תרומה לפעילות הארגון
+            </Link>
+            <Link
+              href="/help"
+              className="w-full bg-[#91006A]/10 text-[#91006A] font-bold py-4 border border-[#91006A]/20 hover:bg-[#91006A]/20 transition-all flex items-center justify-center gap-2 rounded-lg"
+            >
+              <span className="material-symbols-outlined">mail</span>
+              צרי קשר איתנו
+            </Link>
           </div>
-          <div className="divide-y divide-[#FBE4F0]">
-            {[
-              { emoji: '📝', title: 'הרשמה',     desc: 'יולדת, מבשלת או מחלקת נרשמות לאפליקציה' },
-              { emoji: '✅', title: 'אישור',      desc: 'הרכזת מאשרת את ההרשמה ומתאמת' },
-              { emoji: '🍲', title: 'בישול',      desc: 'מבשלת מתנדבת לוקחת ארוחה ומכינה עם אהבה' },
-              { emoji: '🚗', title: 'חלוקה',      desc: 'מחלקת מגיעה לאסוף ומביאה ישירות לבית' },
-              { emoji: '💛', title: 'הכרת תודה',  desc: 'היולדת מקבלת ארוחה חמה ומאשרת קבלה' },
-            ].map((step) => (
-              <div key={step.title} className="flex items-center gap-3 px-5 py-3.5 text-right">
-                <span className="text-2xl">{step.emoji}</span>
-                <div>
-                  <p className="text-sm font-semibold text-zinc-900">{step.title}</p>
-                  <p className="text-xs text-zinc-500">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Values */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { emoji: '🤝', label: 'קהילה' },
-            { emoji: '💕', label: 'אהבה' },
-            { emoji: '🍽️', label: 'תזונה' },
-            { emoji: '✨', label: 'כבוד' },
-          ].map((v) => (
-            <div key={v.label}
-                 className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-[#F7D4E2] bg-white py-5 shadow-sm">
-              <span className="text-3xl">{v.emoji}</span>
-              <span className="text-sm font-semibold" style={{ color: '#811453' }}>{v.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="space-y-3">
-          <Link href="/signup"
-                className="flex min-h-[52px] w-full items-center justify-center rounded-2xl text-base font-bold text-white shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #811453, #4A0731)' }}>
-            הצטרפי אלינו
-          </Link>
-          <Link href="/help"
-                className="flex min-h-[52px] w-full items-center justify-center rounded-2xl border text-sm font-semibold"
-                style={{ borderColor: '#F7D4E2', color: '#811453' }}>
-            מרכז עזרה
-          </Link>
         </div>
       </main>
+      <footer className="sticky bottom-0 bg-[#f8f5f8] border-t border-[#91006A]/10 px-4 py-2">
+        <nav className="flex justify-between items-center max-w-xl mx-auto">
+          <Link href="/" className="flex flex-col items-center p-2 text-[#91006A]/60">
+            <span className="material-symbols-outlined">home</span>
+            <span className="text-[10px] mt-1">בית</span>
+          </Link>
+          <Link href="/donate" className="flex flex-col items-center p-2 text-[#91006A]/60">
+            <span className="material-symbols-outlined">restaurant</span>
+            <span className="text-[10px] mt-1">ארוחות</span>
+          </Link>
+          <Link href="/help" className="flex flex-col items-center p-2 text-[#91006A]/60">
+            <span className="material-symbols-outlined">medical_services</span>
+            <span className="text-[10px] mt-1">שירותים</span>
+          </Link>
+          <Link href="/profile" className="flex flex-col items-center p-2 text-[#91006A]/60">
+            <span className="material-symbols-outlined">person</span>
+            <span className="text-[10px] mt-1">פרופיל</span>
+          </Link>
+        </nav>
+      </footer>
     </div>
   );
 }

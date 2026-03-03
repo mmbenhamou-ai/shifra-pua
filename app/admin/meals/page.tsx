@@ -1,42 +1,48 @@
 import { createAdminClient } from '@/lib/supabase-admin';
+import Pagination from '@/app/components/Pagination';
 import MealStatusSelect from './MealStatusSelect';
 import AssignSelect from './AssignSelect';
 import DeleteMealButton from './DeleteMealButton';
 import MealItemsEditor from './MealItemsEditor';
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
-  open:            { label: 'פנויה',          bg: '#FEF3C7', color: '#92400E' },
-  cook_assigned:   { label: 'יש מבשלת',       bg: '#DBEAFE', color: '#1E40AF' },
-  ready:           { label: 'מוכנה',          bg: '#D1FAE5', color: '#065F46' },
-  driver_assigned: { label: 'יש מחלקת',       bg: '#EDE9FE', color: '#5B21B6' },
-  picked_up:       { label: 'נאסף',           bg: '#FED7AA', color: '#9A3412' },
-  delivered:       { label: 'נמסר',           bg: '#E0E7FF', color: '#3730A3' },
-  confirmed:       { label: 'אושר ✓',         bg: '#F3F4F6', color: '#374151' },
+  open: { label: 'פנויה', bg: '#FEF3C7', color: '#92400E' },
+  cook_assigned: { label: 'יש מבשלת', bg: '#DBEAFE', color: '#1E40AF' },
+  ready: { label: 'מוכנה', bg: '#D1FAE5', color: '#065F46' },
+  driver_assigned: { label: 'יש מחלקת', bg: '#EDE9FE', color: '#5B21B6' },
+  picked_up: { label: 'נאסף', bg: '#FED7AA', color: '#9A3412' },
+  delivered: { label: 'נמסר', bg: '#E0E7FF', color: '#3730A3' },
+  confirmed: { label: 'אושר ✓', bg: '#F3F4F6', color: '#374151' },
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  breakfast:        'ארוחת בוקר',
-  shabbat_friday:   'שבת ליל',
+  breakfast: 'ארוחת בוקר',
+  shabbat_friday: 'שבת ליל',
   shabbat_saturday: 'שבת צהריים',
 };
 
 const STATUS_FILTERS = [
-  { key: 'all',            label: 'הכל' },
-  { key: 'open',           label: 'פנויות' },
-  { key: 'cook_assigned',  label: 'מבשלת' },
-  { key: 'ready',          label: 'מוכנות' },
-  { key: 'driver_assigned',label: 'מחלקת' },
-  { key: 'picked_up',      label: 'נאספו' },
-  { key: 'delivered',      label: 'נמסרו' },
-  { key: 'confirmed',      label: 'אושרו' },
+  { key: 'all', label: 'הכל' },
+  { key: 'open', label: 'פנויות' },
+  { key: 'cook_assigned', label: 'מבשלת' },
+  { key: 'ready', label: 'מוכנות' },
+  { key: 'driver_assigned', label: 'מחלקת' },
+  { key: 'picked_up', label: 'נאספו' },
+  { key: 'delivered', label: 'נמסרו' },
+  { key: 'confirmed', label: 'אושרו' },
 ];
+
+const PAGE_SIZE = 25;
 
 export default async function MealsAdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; date?: string; type?: string }>;
+  searchParams: Promise<{ status?: string; date?: string; type?: string; page?: string }>;
 }) {
-  const { status = 'all', date, type } = await searchParams;
+  const { status = 'all', date, type, page: pageStr = '1' } = await searchParams;
+  const page = Math.max(1, parseInt(pageStr, 10) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
   const admin = createAdminClient();
 
   let query = admin
@@ -48,15 +54,15 @@ export default async function MealsAdminPage({
       driver:driver_id(id, name),
       beneficiary:beneficiary_id(user:user_id(name, address)),
       meal_items(id, item_name, item_type, cook_id, cook:cook_id(name))
-    `)
+    `, { count: 'exact' })
     .order('date', { ascending: false })
-    .limit(100);
+    .range(from, to);
 
   if (status !== 'all') query = query.eq('status', status);
   if (date) query = query.eq('date', date);
   if (type && type !== 'all') query = query.eq('type', type);
 
-  const { data: meals } = await query;
+  const { data: meals, count = 0 } = await query;
 
   const { data: cooks } = await admin
     .from('users')
@@ -72,15 +78,15 @@ export default async function MealsAdminPage({
     .eq('approved', true)
     .order('name');
 
-  const list        = meals   ?? [];
-  const cookList    = (cooks  ?? []).map((c) => ({ id: c.id as string, name: c.name as string }));
-  const driverList  = (drivers ?? []).map((d) => ({ id: d.id as string, name: d.name as string }));
+  const list = meals ?? [];
+  const cookList = (cooks ?? []).map((c) => ({ id: c.id as string, name: c.name as string }));
+  const driverList = (drivers ?? []).map((d) => ({ id: d.id as string, name: d.name as string }));
 
   return (
     <div className="space-y-5 pb-4" dir="rtl">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold" style={{ color: '#811453' }}>ניהול ארוחות</h1>
-        <p className="text-sm" style={{ color: '#7C365F' }}>{list.length} ארוחות נמצאו</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>ניהול ארוחות</h1>
+        <p className="text-sm" style={{ color: '#7C365F' }}>{count} ארוחות נמצאו</p>
       </header>
 
       {/* פילטרים */}
@@ -92,8 +98,8 @@ export default async function MealsAdminPage({
               href={`/admin/meals?status=${f.key}${date ? `&date=${date}` : ''}${type ? `&type=${type}` : ''}`}
               className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition"
               style={{
-                backgroundColor: status === f.key ? '#811453' : '#FBE4F0',
-                color:           status === f.key ? '#FFFFFF' : '#811453',
+                backgroundColor: status === f.key ? 'var(--brand)' : '#FBE4F0',
+                color: status === f.key ? '#FFFFFF' : 'var(--brand)',
               }}
             >
               {f.label}
@@ -123,7 +129,7 @@ export default async function MealsAdminPage({
             <button
               type="submit"
               className="rounded-xl px-3 py-2 text-xs font-semibold text-white"
-              style={{ backgroundColor: '#811453' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               סנן
             </button>
@@ -139,17 +145,15 @@ export default async function MealsAdminPage({
       ) : (
         <ul className="space-y-3">
           {list.map((meal) => {
-            const st     = STATUS_META[meal.status as string] ?? STATUS_META['open'];
-            const cookObj   = meal.cook   as { id?: string; name?: string } | null;
-            const driverObj = meal.driver as { id?: string; name?: string } | null;
-            const ben    = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
-            const menu   = (meal.menu as { name?: string } | null)?.name;
+            const st = STATUS_META[meal.status as string] ?? STATUS_META['open'];
+            const ben = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
+            const menu = (meal.menu as { name?: string } | null)?.name;
             const mealItems = (meal.meal_items as { id: string; item_name: string; item_type: string; cook_id: string | null; cook?: { name?: string } | null }[]) ?? [];
             const isShabbat = (meal.type as string).startsWith('shabbat');
 
             return (
               <li key={meal.id as string}
-                  className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
+                className="overflow-hidden rounded-2xl border border-[#F7D4E2] bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-[#FBE4F0] px-4 py-2.5">
                   <div className="flex items-center gap-1.5">
                     <MealStatusSelect mealId={meal.id as string} current={meal.status as string} />
@@ -205,6 +209,14 @@ export default async function MealsAdminPage({
           })}
         </ul>
       )}
+      <Pagination
+        page={page}
+        total={count ?? 0}
+        perPage={PAGE_SIZE}
+        makeHref={(p) =>
+          `/admin/meals?status=${status}${date ? `&date=${date}` : ''}${type ? `&type=${type}` : ''}&page=${p}`
+        }
+      />
     </div>
   );
 }
