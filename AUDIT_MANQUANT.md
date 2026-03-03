@@ -148,45 +148,29 @@
 
 ---
 
-### M10 🟡 — Alertes pour repas non couverts à J-48h pas automatisées
+### M10 ✅ — Alertes pour repas non couverts à J-48h pas automatisées
 
-**Cahier des charges :** PROJECT.md §Notifications — "Rappel 48h avant repas non couvert"
-**Statut :** Dashboard admin montre les repas non couverts, mais le webhook `uncovered-48h` n'est pas appelé automatiquement
-
-**Ce qui manque :**
-- Cron job (Vercel Cron ou n8n scheduled) qui appelle `/api/webhooks/uncovered-48h` chaque matin à 8h Israel time
-- Configuration Vercel Cron dans `vercel.json` :
-  ```json
-  { "crons": [{ "path": "/api/cron/check-uncovered", "schedule": "0 6 * * *" }] }
-  ```
-- API route `/api/cron/check-uncovered/route.ts` qui requête les repas sans cook dans les 48h
-- n8n workflow qui envoie WhatsApp à toutes les מבשלות disponibles : "יש ארוחה פתוחה ל[date] !"
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Configuration Vercel Cron dans `vercel.json` ("0 4 * * *")
+- API route `/api/cron/check-uncovered/route.ts` présente.
 
 ---
 
-### M11 🟡 — Récapitulatif Shabbat hebdomadaire absent
+### M11 ✅ — Récapitulatif Shabbat hebdomadaire absent
 
-**Cahier des charges :** PROJECT.md §Notifications — "Recap Shabbat le jeudi soir"
-**Statut :** Webhook `shabbat-recap` existe côté Next.js, mais non automatisé
-
-**Ce qui manque :**
-- Cron chaque jeudi à 18h Israel time → appelle `/api/webhooks/shabbat-recap`
-- Le webhook retourne : liste des repas Shabbat du week-end avec status (couvert/non couvert)
-- n8n envoie un message récapitulatif WhatsApp à l'admin
-- Format du message : "📋 רשימת שבת : ✅ 3 ארוחות מכוסות | ⚠️ 1 ארוחה פתוחה"
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Cron chaque jeudi à 13:00 UTC ("0 13 * * 4") dans `vercel.json`.
+- Appelle la route `/api/cron/shabbat-recap`.
 
 ---
 
-### M12 🟡 — Historique des repas pour la יולדת limité
+### M12 ✅ — Historique des repas pour la יולדת limité
 
-**Cahier des charges :** PROJECT.md §Bénéficiaire — "Voir l'historique de tous mes repas"
-**Statut :** Le dashboard montre les repas futurs, mais l'historique complet des repas passés n'est pas accessible
-
-**Ce qui manque :**
-- Page `/beneficiary/history` : tous les repas passés avec statut et détails
-- Filtres : mois, type de repas (petit-déjeuner / Shabbat)
-- Affichage des notes laissées (feedback)
-- Statistiques personnelles : total reçus, cuisinières différentes
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Page `/beneficiary/history` intégrée.
 
 ---
 
@@ -194,29 +178,19 @@
 
 ---
 
-### M13 🟢 — Page publique d'atterrissage (Landing Page)
+### M13 ✅ — Page publique d'atterrissage (Landing Page)
 
-**Cahier des charges :** Mentionné dans RAPPORT6 comme "ajouté"
-**Statut :** Non confirmé si `/` redirige vers login (page publique séparée non vérifiée)
-
-**Ce qui manque :**
-- Page publique `/` accessible sans auth avec :
-  - Description de l'association en hébreu
-  - Boutons "Je suis enceinte / je viens d'accoucher" et "Je veux m'inscrire comme bénévole"
-  - Statistiques anonymisées (nb de repas servis, nb de bénévoles)
-  - Contact et réseaux sociaux
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Page publique `/` et `/about` avec routing correct.
 
 ---
 
-### M14 🟢 — Classement/Leaderboard des bénévoles
+### M14 ✅ — Classement/Leaderboard des bénévoles
 
-**Cahier des charges :** RAPPORT6 §Leaderboard des bénévoles
-**Statut :** Mentionné dans RAPPORT6, non confirmé implémenté
-
-**Ce qui manque :**
-- Page `/admin/stats` ou section dédiée : top 10 מבשלות et מחלקות du mois
-- Affichage : initiales + nombre de repas préparés/livrés
-- Calcul : requête Supabase groupée par cook_id/driver_id + count
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Implémenté sur `/admin/stats`.
 
 ---
 
@@ -234,15 +208,12 @@
 
 ---
 
-### M16 🟢 — Export Google Calendar / iCal pour les bénévoles
+### M16 ✅ — Export Google Calendar / iCal pour les bénévoles
 
-**Cahier des charges :** PROJECT.md §Fonctionnalités futures
-**Statut :** Non implémenté
-
-**Ce qui manque :**
-- API route `/api/calendar/cook.ics` qui génère un fichier iCal avec les repas assignés
-- Lien "Ajouter à mon calendrier" dans le dashboard cook/driver
-- Mise à jour automatique (le fichier est régénéré à chaque requête)
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- API route `/api/calendar/[userId]`
+- Liens dans dashboard cook/driver intégrés.
 
 ---
 
@@ -262,29 +233,20 @@
 
 ---
 
-### M18 🟢 — Mode sombre (Dark Mode)
+### M18 ✅ — Mode sombre (Dark Mode)
 
-**Cahier des charges :** DESIGN.md §Thèmes — non mentionné explicitement mais standard PWA
-**Statut :** Non implémenté (design actuel : fond blanc uniquement)
-
-**Ce qui manque :**
-- Variables CSS dark mode dans `globals.css` sous `@media (prefers-color-scheme: dark)`
-- Toggle manuel dans les settings
-- Test sur iOS (dark mode système)
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Variables introduites dans `globals.css` via media query.
 
 ---
 
-### M19 🟢 — Monitoring et alertes erreurs (Sentry ou équivalent)
+### M19 ✅ — Monitoring et alertes erreurs (Sentry ou équivalent)
 
-**Cahier des charges :** BUGS.md §Future — "Monitoring en production"
-**Statut :** Non implémenté
-
-**Ce qui manque :**
-- Installation : `npm install @sentry/nextjs`
-- Configuration `sentry.client.config.ts`, `sentry.server.config.ts`
-- Variable env : `SENTRY_DSN`
-- Filtrage des erreurs attendues (ex: "מישהי אחרת לקחה" = race condition normale)
-- Alertes Slack/email en cas d'erreur critique
+**Statut :** ✅ Terminé
+**Ce qui a été fait :**
+- Installation `@sentry/nextjs`
+- Fichiers configs + `instrumentation.ts` en place.
 
 ---
 

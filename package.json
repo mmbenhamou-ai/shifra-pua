@@ -12,6 +12,7 @@
     "types:supabase": "npx supabase gen types typescript --local --schema public > lib/database.types.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.41.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
     "lucide-react": "^0.575.0",
