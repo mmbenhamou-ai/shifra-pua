@@ -140,3 +140,41 @@ ul, ol {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 16px);
 }
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111111;
+    --background-light: #1A1A1A;
+    --foreground: #F5F5F5;
+    
+    --page-bg: #111111;
+    --page-bg-end: #1A1A1A;
+    --card-bg: #1F1F1F;
+    --input-bg: #222222;
+
+    --brand: #e886c5;
+    --brand-dark: #b8408a;
+    --brand-gradient-end: #d658a5;
+    --brand-border: #4a213e;
+    --brand-muted: #3a1a31;
+    --brand-pale: #22121e;
+    --brand-on: #ffffff;
+    
+    --accent-text: #E5E5E5;
+    --text-muted: #A3A3A3;
+    --text-muted-alt: #8C8C8C;
+
+    --gradient-login-start: #2A1724;
+    --gradient-login-mid: #381A2D;
+    --gradient-login-end: #471E39;
+
+    --success-bg: #064E3B;
+    --success-text: #34D399;
+    --warning-bg: #78350F;
+    --warning-text: #FBBF24;
+    --warning-dot: #D97706;
+  }
+}
