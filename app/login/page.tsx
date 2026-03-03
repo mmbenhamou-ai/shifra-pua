@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 type Stage = 'phone' | 'code';
-type Method = 'phone' | 'email';
 
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');

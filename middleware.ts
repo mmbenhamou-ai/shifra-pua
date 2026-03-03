@@ -38,13 +38,6 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const isDev = process.env.NODE_ENV === 'development';
 
-  // En dev : poser le bypass sur / pour que l'accueil redirige vers /admin
-  if (isDev && pathname === '/') {
-    res.cookies.set('dev_bypass', '1', { path: '/', maxAge: 60 * 60 * 24 });
-    res.cookies.set('user_role', 'admin', { path: '/', maxAge: 60 * 60 * 24 });
-    return res;
-  }
-
   // Vérifier si c'est une route protégée
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   if (!isProtected) return res;

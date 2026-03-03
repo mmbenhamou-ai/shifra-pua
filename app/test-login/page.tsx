@@ -60,7 +60,7 @@ export default function TestLoginPage() {
       }
 
       router.replace('/admin');
-    } catch (err) {
+    } catch {
       setError('אירעה שגיאה בלתי צפויה. נסי שוב מאוחר יותר.');
     } finally {
       setLoading(false);

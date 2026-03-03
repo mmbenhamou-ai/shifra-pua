@@ -69,7 +69,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   // Initial load + realtime
   useEffect(() => {
-    const t = setTimeout(() => {
+    setTimeout(() => {
       load().catch(console.error);
     }, 0);
     const channel = supabase

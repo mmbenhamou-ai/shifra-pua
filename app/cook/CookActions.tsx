@@ -16,7 +16,7 @@ function ConflictMsg({ msg, onClose }: { msg: string; onClose: () => void }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
-      const cleanup = setTimeout(onClose, 300);
+      setTimeout(onClose, 300);
     }, 5000);
     return () => clearTimeout(timer);
   }, [msg, onClose]);
