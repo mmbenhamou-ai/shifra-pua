@@ -1,1 +1,0 @@
--- RPC et trigger Shabbat : définis dans 016-020 (un statement par fichier pour le runner).
