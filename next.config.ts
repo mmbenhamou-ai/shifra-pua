@@ -5,8 +5,10 @@ const isProd = process.env.NODE_ENV === 'production';
 const nextConfig: NextConfig = {
   async headers() {
     const googleMapsDomains = "https://maps.googleapis.com https://maps.gstatic.com";
+    // Hash autorise le script inline bloqué par la CSP (fourni par le navigateur dans l'erreur CSP).
+    const inlineScriptHash = "'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo='";
     const scriptSrc = isProd
-      ? `script-src 'self' ${googleMapsDomains}`
+      ? `script-src 'self' ${inlineScriptHash} ${googleMapsDomains}`
       : `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleMapsDomains}`;
 
     return [

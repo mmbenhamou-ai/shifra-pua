@@ -9,6 +9,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ---------------------------------------------------------------
 -- TABLE public.users (profil étendu auth.users)
 -- ---------------------------------------------------------------
+create extension if not exists "pgcrypto";
+
 CREATE TABLE IF NOT EXISTS public.users (
   id            uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   phone         text,
@@ -239,7 +241,7 @@ ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
 -- TABLE public.user_push_subscriptions — abonnements push
 -- ---------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.user_push_subscriptions (
-  id         uuid        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    uuid        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   endpoint   text        NOT NULL UNIQUE,
   p256dh     text        NOT NULL,
