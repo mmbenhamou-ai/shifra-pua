@@ -218,13 +218,14 @@
 ---
 
 ### M17 ✅ — Notifications push natives PWA
-
 **Statut :** ✅ Terminé
 **Ce qui a été fait :**
-- Installation `@types/web-push` et `web-push` pour compatibilité.
-- Clés VAPID générées dans le `.env.local`
-- API `POST /api/push/subscribe` et composant UI `<PushNotificationManager />` intégrés à la page Profile (`/profile`).
-- Table définie via un patch du type `Database` dans `database.types.ts`.
+- Installation `@types/web-push` et `web-push`.
+- Clés VAPID configurées dans `.env.local`.
+- Migration physique créée : `supabase/migrations/025_user_push_subscriptions.sql`.
+- API `POST /api/push/subscribe` et composant UI `<PushNotificationManager />` intégrés à `/profile`.
+- Intégration complète dans les actions : Annonces admin, Validation compte, Repas prêt, Repas livré.
+- Service Worker (`sw.js`) gère l'affichage et le clic sur notification.
 
 ---
 

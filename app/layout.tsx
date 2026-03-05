@@ -38,14 +38,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-touch-fullscreen" content="yes" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="theme-color" content="#91006A" />
-
-
-        {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <script
-            async
-            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&language=iw`}
-          ></script>
-        )}
       </head>
       <body
         className={`${inter.variable} antialiased font-sans`}

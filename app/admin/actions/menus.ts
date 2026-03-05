@@ -3,8 +3,27 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+
+async function ensureAdmin() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('נא להתחבר שוב');
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+
+  if (user?.role !== 'admin') {
+    throw new Error('פעולה זו שמורה למנהלות המערכת בלבד');
+  }
+  return session;
+}
 
 export async function createMenu(formData: FormData) {
+  await ensureAdmin();
   const name = (formData.get('name') as string).trim();
   const type = formData.get('type') as string;
   const itemsRaw = (formData.get('items') as string).trim();
@@ -31,6 +50,7 @@ export async function createMenu(formData: FormData) {
 }
 
 export async function toggleMenuActive(menuId: string, currentActive: boolean) {
+  await ensureAdmin();
   const admin = createAdminClient();
   const { error } = await admin
     .from('menus')
@@ -46,6 +66,7 @@ export async function toggleMenuActive(menuId: string, currentActive: boolean) {
 }
 
 export async function deleteMenu(menuId: string) {
+  await ensureAdmin();
   const admin = createAdminClient();
   const { error } = await admin.from('menus').delete().eq('id', menuId);
 
@@ -58,6 +79,7 @@ export async function deleteMenu(menuId: string) {
 }
 
 export async function reorderMenuItems(menuId: string, items: string[]) {
+  await ensureAdmin();
   const admin = createAdminClient();
   const { error } = await admin
     .from('menus')
@@ -70,6 +92,7 @@ export async function reorderMenuItems(menuId: string, items: string[]) {
 }
 
 export async function addMenuItem(menuId: string, currentItems: string[], newItem: string) {
+  await ensureAdmin();
   if (!newItem.trim()) return;
   const updated = [...currentItems, newItem.trim()];
   const admin = createAdminClient();
@@ -84,6 +107,7 @@ export async function addMenuItem(menuId: string, currentItems: string[], newIte
 }
 
 export async function removeMenuItem(menuId: string, currentItems: string[], index: number) {
+  await ensureAdmin();
   const updated = currentItems.filter((_, i) => i !== index);
   const admin = createAdminClient();
   const { error } = await admin

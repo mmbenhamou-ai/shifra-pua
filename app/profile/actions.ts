@@ -14,7 +14,6 @@ export async function updateProfile(formData: FormData) {
   const address = (formData.get('address') as string | null)?.trim() || null;
   const neighborhood = (formData.get('neighborhood') as string | null)?.trim() || null;
   const email = (formData.get('email') as string | null)?.trim() || null;
-  const notes = (formData.get('notes') as string | null)?.trim() || null;
   const notif_cooking = formData.get('notif_cooking') !== 'false';
   const notif_delivery = formData.get('notif_delivery') !== 'false';
 
@@ -23,7 +22,7 @@ export async function updateProfile(formData: FormData) {
   const admin = createAdminClient();
   const { error } = await admin
     .from('users')
-    .update({ name, phone, address, neighborhood, email, notes, notif_cooking, notif_delivery })
+    .update({ name, phone, address, neighborhood, email, notif_cooking, notif_delivery })
     .eq('id', session.user.id);
 
   if (error) throw new Error('שגיאה בשמירת הפרטים: ' + error.message);

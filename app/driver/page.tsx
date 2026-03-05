@@ -6,6 +6,7 @@ import NavButtons from './NavButtons';
 import { TakeDeliveryButton, PickedUpButton, DeliveredButton } from './DriverActions';
 import ReleaseButton from './ReleaseButton';
 import Link from 'next/link';
+import { isSameNeighborhood, buildWazeUrl } from '@/lib/utils';
 
 const TYPE_LABELS: Record<string, string> = {
   breakfast: 'ארוחת בוקר',
@@ -86,12 +87,14 @@ export default async function DriverDashboard({
   const availFrom = (availPage - 1) * AVAIL_PAGE_SIZE;
   const availTo = availFrom + AVAIL_PAGE_SIZE - 1;
 
-  const [{ data: myDeliveries }, { data: available, count: totalAvailable = 0 }] = await Promise.all([
+  const [{ data: myDeliveries }, { data: available, count: totalAvailable = 0 }, { data: profile }] = await Promise.all([
     supabase
       .from('meals')
-      .select(`id, date, type, status, pickup_time, delivery_time,
+      .select(
+        `id, date, type, status,
         cook:cook_id(name, address),
-        beneficiary:beneficiary_id(user:user_id(name, phone, address))`)
+        beneficiary:beneficiary_id(user:user_id(name, phone, address))`,
+      )
       .eq('driver_id', userId)
       .in('status', ['driver_assigned', 'picked_up'])
       .order('date', { ascending: true }),
@@ -99,20 +102,23 @@ export default async function DriverDashboard({
     supabase
       .from('meals')
       .select(
-        `id, date, type, status, pickup_time, delivery_time,
+        `id, date, type, status,
         cook:cook_id(name, address),
-        beneficiary:beneficiary_id(user:user_id(name, phone, address))`,
+        beneficiary:beneficiary_id(user:user_id(name, phone, address, neighborhood))`,
         { count: 'exact' },
       )
       .eq('status', 'ready')
       .gte('date', today)
       .order('date', { ascending: true })
       .range(availFrom, availTo),
+
+    supabase.from('users').select('neighborhood').eq('id', userId).maybeSingle(),
   ]);
 
   const mine = myDeliveries ?? [];
   const avail = available ?? [];
   const totalAvailPages = Math.max(1, Math.ceil((totalAvailable ?? 0) / AVAIL_PAGE_SIZE));
+  const userNeighborhood = profile?.neighborhood;
 
   return (
     <div className="space-y-6 pb-24" dir="rtl">
@@ -190,7 +196,6 @@ export default async function DriverDashboard({
                       <div className="text-right">
                         <p className="text-xs font-bold text-zinc-800">🍲 {cook.name}</p>
                         {cook.address && <p className="text-xs text-zinc-400 mt-0.5">{cook.address}</p>}
-                        {meal.pickup_time && <p className="text-xs text-zinc-400">⏰ {meal.pickup_time}</p>}
                       </div>
                     </div>
                   )}
@@ -207,7 +212,6 @@ export default async function DriverDashboard({
                       <div className="text-right">
                         <p className="text-xs font-bold text-zinc-800">👶 {ben.name}</p>
                         {ben.address && <p className="text-xs text-zinc-400 mt-0.5">{ben.address}</p>}
-                        {meal.delivery_time && <p className="text-xs text-zinc-400">⏰ {meal.delivery_time}</p>}
                       </div>
                     </div>
                   )}
@@ -220,7 +224,7 @@ export default async function DriverDashboard({
                       {/* "אני בדרך לאיסוף" → Waze vers cuisinière + status change */}
                       {cook?.address && (
                         <a
-                          href={`https://waze.com/ul?q=${encodeURIComponent(cook.address)}&navigate=yes`}
+                          href={buildWazeUrl(cook.address || '') || '#'}
                           target="_blank" rel="noopener noreferrer"
                           className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold text-white transition active:scale-[0.97]"
                           style={{ background: 'linear-gradient(135deg,#00A0DC,#0080B3)', boxShadow: '0 4px 18px rgba(0,160,220,0.30)' }}>
@@ -262,23 +266,36 @@ export default async function DriverDashboard({
           <div className="space-y-3">
             {avail.map((meal) => {
               const cook = meal.cook as { name?: string; address?: string } | null;
-              const ben = (meal.beneficiary as { user?: { name?: string; address?: string } } | null)?.user;
+              const ben = (meal.beneficiary as { user?: { name?: string; address?: string; neighborhood?: string } } | null)?.user;
               const isReady = meal.status === 'ready';
+              const nearby = isSameNeighborhood(ben?.neighborhood, userNeighborhood);
 
               return (
                 <div key={meal.id as string}
                   className="overflow-hidden rounded-2xl border bg-white transition-all active:scale-[0.99]"
-                  style={{ borderColor: '#F0E6EC', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+                  style={{
+                    borderColor: nearby ? 'var(--brand)' : '#F0E6EC',
+                    borderWidth: nearby ? 2 : 1,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)'
+                  }}>
 
                   {/* top bar */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
-                    <span className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                      style={{
-                        backgroundColor: isReady ? '#D1FAE5' : '#FEF3C7',
-                        color: isReady ? '#065F46' : '#B45309'
-                      }}>
-                      {isReady ? '✓ מוכן לאיסוף' : 'ממתין'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {nearby && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                          style={{ backgroundColor: 'var(--brand)', color: '#fff' }}>
+                          קרוב אלייך 📍
+                        </span>
+                      )}
+                      <span className="rounded-full px-2.5 py-1 text-xs font-semibold"
+                        style={{
+                          backgroundColor: isReady ? '#D1FAE5' : '#FEF3C7',
+                          color: isReady ? '#065F46' : '#B45309'
+                        }}>
+                        {isReady ? '✓ מוכן לאיסוף' : 'ממתין'}
+                      </span>
+                    </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-zinc-900">{TYPE_LABELS[meal.type as string] ?? meal.type}</p>
                       <p className="text-xs text-zinc-400">

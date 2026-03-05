@@ -3,16 +3,32 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+
+async function ensureAdmin() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('נא להתחבר שוב');
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+
+  if (user?.role !== 'admin') {
+    throw new Error('פעולה זו שמורה למנהלות המערכת בלבד');
+  }
+  return session;
+}
 
 /** מחזיר את כל ימי שישי ושבת בתוך טווח נתון */
 function shabbatDatesInRange(start: Date, weeks: number): { friday: Date; saturday: Date }[] {
   const result: { friday: Date; saturday: Date }[] = [];
-  // מתחילים מהשישי הראשון שאחרי start_date (כולל start_date עצמו)
   const cursor = new Date(start);
   cursor.setHours(0, 0, 0, 0);
-  // מצא את השישי הראשון
-  const dayOfWeek = cursor.getDay(); // 0=Sun … 5=Fri … 6=Sat
-  const daysUntilFriday = dayOfWeek <= 5 ? 5 - dayOfWeek : 6; // ימים עד שישי
+  const dayOfWeek = cursor.getDay();
+  const daysUntilFriday = dayOfWeek <= 5 ? 5 - dayOfWeek : 6;
   cursor.setDate(cursor.getDate() + daysUntilFriday);
 
   for (let i = 0; i < weeks; i++) {
@@ -31,6 +47,7 @@ function toDateStr(d: Date): string {
 }
 
 export async function approveUser(userId: string) {
+  const session = await ensureAdmin();
   const admin = createAdminClient();
 
   // 1. אשר את המשתמשת
@@ -54,6 +71,27 @@ export async function approveUser(userId: string) {
   // אם היא מבשלת ויש לה גם רכב (also_driver), הפוך אותה ל-both
   if (user?.also_driver && user?.role === 'cook') {
     await admin.from('users').update({ role: 'both' }).eq('id', userId);
+  }
+
+  // 3. לוג ביקורת
+  await admin.from('admin_audit_log').insert({
+    admin_id: session.user.id,
+    action: 'approve_user',
+    target_id: userId,
+    details: { name: user?.name, role: user?.role }
+  });
+
+  // 4. Send Push Notification to the user
+  try {
+    const { sendPushNotification } = await import('@/lib/push-notifications');
+    await sendPushNotification(
+      userId,
+      'החשבון שלך אושר! 🎊',
+      'ברוכה הבאה לשפרה ופועה. עכשיו את יכולה לגשת לכל הפיצ\'רים של האפליקציה.',
+      '/'
+    );
+  } catch (err) {
+    console.error('Failed to send approval push:', err);
   }
 
   if (user?.role !== 'beneficiary') {
@@ -201,7 +239,15 @@ export async function approveUser(userId: string) {
 }
 
 export async function rejectUser(userId: string) {
+  const session = await ensureAdmin();
   const admin = createAdminClient();
+
+  // לוג ביקורת (לפני המחיקה)
+  await admin.from('admin_audit_log').insert({
+    admin_id: session.user.id,
+    action: 'reject_user',
+    target_id: userId,
+  });
 
   // Supprime aussi le compte Auth pour empêcher une reconnexion OTP avec le même numéro
   const { error: authError } = await admin.auth.admin.deleteUser(userId);

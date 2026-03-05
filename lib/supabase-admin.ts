@@ -1,8 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * Service-role client — bypasses RLS.
- * Use ONLY in Server Actions and API routes, never in client code.
+ * Client avec SUPABASE_SERVICE_ROLE_KEY — contourne les RLS.
+ *
+ * RÈGLE SÉCURITÉ : cette clé ne doit être utilisée que depuis :
+ * - scripts internes
+ * - cron jobs (ex. app/api/cron/*)
+ * - migrations
+ * - tâches backend isolées (ex. app/api/webhooks/*)
+ *
+ * Ne pas utiliser dans : app/* (pages/composants), server actions, middleware,
+ * ni dans les API routes appelées par le front (ex. /api/admin/export).
+ * Préférer createSupabaseServerClient() + RLS + RPC.
  */
 export function createAdminClient() {
   if (typeof window !== 'undefined') {

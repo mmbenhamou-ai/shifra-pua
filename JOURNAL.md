@@ -39,11 +39,17 @@
 - Passage à Next.js stable pour le mode Production.
 - Déploiement réussi sur Vercel avec variables d'environnement appropriées (`vercel deploy --prod`).
 - Validation TS / ESLint / Vitest
+- **Nouveau**: Implémentation complète des Notifications Push natives PWA.
+  - Système de souscription via Service Worker.
+  - Notifications automatiques pour : nouveaux inscrits (admin), validation de compte (user), repas prêt (driver), livraison effectuée (beneficiary).
+  - Envoi d'annonces groupées par les admins avec notifications push instantanées.
+  - Migration SQL `025_user_push_subscriptions.sql` ajoutée.
 
 **Fonctionne à l’écran :**  
 - L'URL live (shifra-pua.vercel.app) affiche l'application complète sans aucune erreur de build TypeScript. 
 - Les rôles et middlewares respectent la sécurité RLS.
 - Les tests Unitaires (`Vitest`) sont au vert (23/23).
+- La gestion des notifications push est active dans le Profil.
 
 **Bugs / solutions :**  
 - **BUG**: Infinite looping `Cascading rendering` en provenance du `NotificationBell`. 

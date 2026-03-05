@@ -70,7 +70,7 @@ export default async function CookDashboard({
     await Promise.all([
       supabase
         .from('meals')
-        .select('id, date, type, status, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))')
+        .select('id, date, type, status, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))')
         .eq('cook_id', userId)
         .in('status', ['cook_assigned', 'ready'])
         .order('date', { ascending: true }),
@@ -78,7 +78,7 @@ export default async function CookDashboard({
       supabase
         .from('meals')
         .select(
-          'id, date, type, pickup_time, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))',
+          'id, date, type, menu:menu_id(name, items), beneficiary:beneficiary_id(is_vegetarian, spicy_level, cooking_notes, user:user_id(name, address, neighborhood))',
           { count: 'exact' },
         )
         .eq('status', 'open')
@@ -182,7 +182,6 @@ export default async function CookDashboard({
                         <p className="text-base font-bold text-white">{TYPE_LABELS[meal.type as string] ?? meal.type}</p>
                         <p className="text-xs text-white/70">
                           {new Date(meal.date as string).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' })}
-                          {meal.pickup_time ? ` · איסוף ${meal.pickup_time}` : ''}
                         </p>
                       </div>
                     </div>
@@ -277,7 +276,7 @@ export default async function CookDashboard({
               const benPrefs: BenPrefs = benRaw ? { is_vegetarian: benRaw.is_vegetarian, spicy_level: benRaw.spicy_level, cooking_notes: benRaw.cooking_notes } : null;
               const menu = meal.menu as { name?: string; items?: string[] } | null;
               const tc = TYPE_COLORS[meal.type as string] ?? TYPE_COLORS.breakfast;
-              const nearby = isSameNeighborhood(ben?.neighborhood);
+              const nearby = isSameNeighborhood(ben?.neighborhood, profile?.neighborhood);
 
               return (
                 <div key={meal.id as string}
@@ -306,9 +305,7 @@ export default async function CookDashboard({
                       <p className="text-sm font-bold text-zinc-900">
                         {new Date(meal.date as string).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' })}
                       </p>
-                      {meal.pickup_time && (
-                        <p className="text-xs text-zinc-400">⏰ איסוף {meal.pickup_time}</p>
-                      )}
+                      {/* זמן איסוף לפי משבצת זמן (אם רלוונטי) */}
                     </div>
                   </div>
 

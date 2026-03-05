@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export default function TestLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <TestLoginInner />
+    </Suspense>
+  );
+}
+
+function TestLoginInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role') ?? undefined;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +42,8 @@ export default function TestLoginPage() {
     try {
       const response = await fetch('/api/dev-login', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(roleParam ? { role: roleParam } : {}),
       });
 
       const json = await response.json();
@@ -59,7 +71,7 @@ export default function TestLoginPage() {
         return;
       }
 
-      router.replace('/admin');
+      router.replace('/');
     } catch {
       setError('אירעה שגיאה בלתי צפויה. נסי שוב מאוחר יותר.');
     } finally {
@@ -85,8 +97,9 @@ export default function TestLoginPage() {
           type="submit"
           disabled={loading}
           style={{ width: '100%', padding: 8 }}
+          data-testid="test-login-submit"
         >
-          {loading ? 'מתחברת...' : 'כניסה כ-admin (DEV)'}
+          {loading ? 'מתחברת...' : roleParam ? `כניסה כ-${roleParam} (DEV)` : 'כניסה כ-admin (DEV)'}
         </button>
       </form>
     </div>

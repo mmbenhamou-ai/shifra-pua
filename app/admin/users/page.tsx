@@ -27,7 +27,7 @@ export default async function UsersPage({
 
   let query = supabase
     .from('users')
-    .select('id, name, role, phone, address, neighborhood, has_car, approved, created_at', { count: 'exact' })
+    .select('id, name, role, phone, address, neighborhood, approved, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -104,16 +104,6 @@ export default async function UsersPage({
                   {(u.address || u.neighborhood) && (
                     <span className="text-xs text-zinc-400">
                       📍 {[u.address, u.neighborhood].filter(Boolean).join(' · ')}
-                    </span>
-                  )}
-
-                  {u.role === 'driver' && (
-                    <span className="rounded-full px-2 py-0.5 text-xs"
-                      style={{
-                        backgroundColor: u.has_car ? '#D1FAE5' : '#FEF3C7',
-                        color: u.has_car ? '#065F46' : '#92400E'
-                      }}>
-                      {u.has_car ? 'יש רכב' : 'אין רכב'}
                     </span>
                   )}
 

@@ -438,31 +438,67 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          id: string
+          admin_id: string | null
+          action: string
+          target_id: string | null
+          details: Record<string, unknown> | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          admin_id?: string | null
+          action: string
+          target_id?: string | null
+          details?: Record<string, unknown> | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          admin_id?: string | null
+          action?: string
+          target_id?: string | null
+          details?: Record<string, unknown> | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      user_push_subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      reserve_meal_item_atomic: {
-        Args: { p_cook_id: string; p_item_id: string }
-        Returns: {
-          cook_id: string | null
-          created_at: string
-          id: string
-          item_name: string
-          item_type: string
-          meal_id: string
-          reserved_at: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "meal_items"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
       take_meal_atomic: {
-        Args: { p_meal_id: string; p_role: string; p_user_id: string }
+        Args: { p_meal_id: string }
         Returns: {
           beneficiary_id: string
           conflict_at: string | null
@@ -477,12 +513,149 @@ export type Database = {
           type: string
           updated_at: string | null
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "meals"
-          isOneToOne: false
-          isSetofReturn: true
-        }
+      }
+      reserve_meal_item_atomic: {
+        Args: { p_item_id: string }
+        Returns: {
+          cook_id: string | null
+          created_at: string
+          id: string
+          item_name: string
+          item_type: string
+          meal_id: string
+          reserved_at: string | null
+        }[]
+      }
+      cook_release_meal: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      driver_release_meal: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      release_meal_item: {
+        Args: { p_item_id: string }
+        Returns: {
+          cook_id: string | null
+          created_at: string
+          id: string
+          item_name: string
+          item_type: string
+          meal_id: string
+          reserved_at: string | null
+        }[]
+      }
+      mark_meal_ready: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      mark_picked_up: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      mark_delivered: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      confirm_meal_received: {
+        Args: { p_meal_id: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
+      }
+      admin_unlock_meal: {
+        Args: { p_meal_id: string; p_new_status: string; p_reason?: string }
+        Returns: {
+          beneficiary_id: string
+          conflict_at: string | null
+          cook_id: string | null
+          created_at: string | null
+          date: string
+          driver_id: string | null
+          id: string
+          menu_id: string | null
+          status: string
+          time_slot_id: string | null
+          type: string
+          updated_at: string | null
+        }[]
       }
     }
     Enums: {
@@ -618,36 +791,3 @@ export const Constants = {
 } as const
 
 
-// Add user_push_subscriptions table directly since generator implies no token right now
-export interface DatabaseExtensions {
-  public: {
-    Tables: {
-      user_push_subscriptions: {
-        Row: {
-          id: string
-          user_id: string
-          endpoint: string
-          p256dh: string
-          auth: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          endpoint: string
-          p256dh: string
-          auth: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          endpoint?: string
-          p256dh?: string
-          auth?: string
-          created_at?: string
-        }
-      }
-    }
-  }
-}

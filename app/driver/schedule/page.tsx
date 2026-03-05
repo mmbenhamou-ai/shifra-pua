@@ -19,7 +19,7 @@ export default async function DriverSchedulePage() {
 
   const { data: meals } = await supabase
     .from('meals')
-    .select('id, date, type, status, delivery_time, cook:cook_id(name, address), beneficiary:beneficiary_id(user:user_id(name, address))')
+    .select('id, date, type, status, cook:cook_id(name, address), beneficiary:beneficiary_id(user:user_id(name, address))')
     .eq('driver_id', session.user.id)
     .gte('date', today.toISOString().split('T')[0])
     .lte('date', in14.toISOString().split('T')[0])
@@ -57,7 +57,6 @@ export default async function DriverSchedulePage() {
                       <p className="text-sm font-semibold text-zinc-900">{TYPE_LABELS[m.type as string] ?? m.type}</p>
                       <p className="text-xs text-zinc-500">
                         {new Date(m.date as string).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'short' })}
-                        {m.delivery_time ? ` · ${m.delivery_time}` : ''}
                       </p>
                     </div>
                   </div>

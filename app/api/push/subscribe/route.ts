@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid subscription object' }, { status: 400 });
         }
 
-        // Insert or update subscription
         const { error } = await supabase
             .from('user_push_subscriptions')
             .upsert({

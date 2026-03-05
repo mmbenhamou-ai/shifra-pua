@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   throw new Error(
@@ -13,4 +14,4 @@ if (process.env.NODE_ENV === 'production' && !process.env.WEBHOOK_SECRET) {
 export const supabaseUrl     = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 
-export type { SupabaseClient };
+export type TypedSupabaseClient = SupabaseClient<Database>;

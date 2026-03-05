@@ -85,7 +85,17 @@ export default async function MealsAdminPage({
   return (
     <div className="space-y-5 pb-4" dir="rtl">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>ניהול ארוחות</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--brand)' }}>ניהול ארוחות</h1>
+          <a
+            href="/admin/meals"
+            data-testid="admin-create-shabbat-meal"
+            className="text-sm font-semibold"
+            style={{ color: 'var(--brand)' }}
+          >
+            יצירת ארוחת שבת
+          </a>
+        </div>
         <p className="text-sm" style={{ color: '#7C365F' }}>{count} ארוחות נמצאו</p>
       </header>
 

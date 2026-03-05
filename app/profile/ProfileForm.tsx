@@ -2,6 +2,7 @@
 
 import { User, Smartphone, MapPin, Map, FileText, ChefHat, Truck, AlertCircle, CheckCircle, RefreshCw, Save } from 'lucide-react';
 import { useRef, useState, useTransition } from 'react';
+import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import { updateProfile } from './actions';
 
 interface User {
@@ -32,12 +33,16 @@ export default function ProfileForm({ user }: { user: User }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [address, setAddress] = useState(user.address ?? '');
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSuccess(false);
     setError(null);
     const fd = new FormData(e.currentTarget);
+    // On force l'adresse car AddressAutocomplete est contrôlé par state
+    fd.set('address', address);
+
     startTransition(async () => {
       try {
         await updateProfile(fd);
@@ -94,9 +99,9 @@ export default function ProfileForm({ user }: { user: User }) {
         <div className="flex flex-col gap-2">
           <label className="text-slate-700 text-sm font-medium pr-1">כתובת מגורים</label>
           <div className={inputWrapperClass}>
-            <input
-              name="address"
-              defaultValue={user.address ?? ''}
+            <AddressAutocomplete
+              value={address}
+              onChange={setAddress}
               placeholder="רחוב, מספר, עיר"
               className={inputClass}
             />

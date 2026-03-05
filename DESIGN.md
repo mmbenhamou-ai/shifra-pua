@@ -60,7 +60,8 @@ Les tokens sont définis dans `app/globals.css` (`:root` + `@theme`). Utiliser l
 
 - Mobile-first, RTL, hébreu
 - Couleurs chaudes et bienveillantes
-- Boutons et zones de tap larges
+- Boutons et zones de tap larges (hauteur minimale stricte : 48px)
+- UX simple et familière, de type Wolt
 
 ---
 
@@ -163,7 +164,7 @@ Les tokens sont définis dans `app/globals.css` (`:root` + `@theme`). Utiliser l
 - Contraste suffisant entre texte et fond (viser \(\geq 4.5:1\) pour le texte principal).
 - Ne jamais coder un état uniquement par la couleur (ajouter icône, texte ou motif).
 - Focus visible toujours activé sur les éléments interactifs.
-- Zones de tap \(\geq 44x44px\).
+- Zones de tap \(\geq 48x48px\) pour un confort maximal sur mobile.
 
 ---
 

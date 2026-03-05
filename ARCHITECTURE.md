@@ -78,14 +78,7 @@ app/
 │
 ├── api/
 │   ├── dev-login/route.ts      # Login dev uniquement
-│   ├── public/stats/route.ts   # Stats publiques anonymisées
-│   └── webhooks/               # n8n webhooks (authentifiés)
-│       ├── _auth.ts            # Middleware auth webhook
-│       ├── new-registration/
-│       ├── registration-approved/
-│       ├── meal-taken/
-│       ├── meal-ready/
-│       └── meal-delivered/
+│   └── public/stats/route.ts   # Stats publiques anonymisées
 │
 └── components/
     ├── LogoutButton.tsx
@@ -192,11 +185,9 @@ value text
 
 ## Variables d'environnement requises
 
-```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-WEBHOOK_SECRET=
 NEXT_PUBLIC_APP_URL=
 ```
 
@@ -220,8 +211,8 @@ NEXT_PUBLIC_APP_URL=
 ## Sécurité
 
 - Supabase RLS sur toutes les tables
+- Application stricte des règles métier côté BDD via RPC
 - Service Role Key uniquement côté serveur
-- Webhook HMAC secret authentication
 - CSP headers configurés dans next.config.ts
 - HSTS activé en production
 - Middleware d'authentification global

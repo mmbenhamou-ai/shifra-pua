@@ -1,29 +1,30 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
-const PROTECTED_PREFIXES = ['/admin', '/beneficiary', '/cook', '/driver', '/profile'];
-const PUBLIC = ['/login', '/signup', '/test-login', '/api/dev-login', '/demo'];
-
-const ROLE_ROUTE_RULES: { prefix: string; roles: string[] }[] = [
-  { prefix: '/admin', roles: ['admin'] },
-  { prefix: '/cook', roles: ['cook', 'both'] },
-  { prefix: '/driver', roles: ['driver', 'both'] },
-  { prefix: '/beneficiary', roles: ['beneficiary'] },
+const PROTECTED_PREFIXES = [
+  '/admin',
+  '/beneficiary',
+  '/cook',
+  '/driver',
+  '/profile',
+  '/yoledet',
+  '/volunteer',
 ];
-
-function getDashboardForRole(role: string): string {
-  switch (role) {
-    case 'admin': return '/admin';
-    case 'cook':
-    case 'both': return '/cook';
-    case 'driver': return '/driver';
-    case 'beneficiary': return '/beneficiary';
-    default: return '/';
-  }
-}
+// /test-login et /api/dev-login : autorisés SEULEMENT en développement
+const PUBLIC = ['/login', '/signup', '/demo'];
+const DEV_ONLY = ['/test-login', '/api/dev-login'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Routes dev-only : bloquer en production
+  if (DEV_ONLY.some((p) => pathname.startsWith(p))) {
+    if (!isDev) {
+      return new NextResponse('Not found', { status: 404 });
+    }
+    return NextResponse.next();
+  }
 
   // Ignorer les routes publiques et les assets
   if (
@@ -36,7 +37,6 @@ export async function middleware(req: NextRequest) {
   }
 
   const res = NextResponse.next();
-  const isDev = process.env.NODE_ENV === 'development';
 
   // Vérifier si c'est une route protégée
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
@@ -60,18 +60,13 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // En développement : bypass login — accès direct à toutes les URLs avec un rôle déduit du path
+  // En développement : bypass login minimal (sans cookie user_role)
   if (!session && isDev) {
-    const roleFromPath =
-      pathname.startsWith('/admin') ? 'admin' :
-        pathname.startsWith('/cook') ? 'cook' :
-          pathname.startsWith('/driver') ? 'driver' :
-            pathname.startsWith('/beneficiary') ? 'beneficiary' :
-              pathname.startsWith('/profile') ? 'admin' : 'admin';
     res.cookies.set('dev_bypass', '1', { path: '/', maxAge: 60 * 60 * 24 });
-    res.cookies.set('user_role', roleFromPath, { path: '/', maxAge: 60 * 60 * 24 });
     return res;
   }
 
@@ -81,40 +76,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // RBAC : déterminer le rôle utilisateur, avec cache dans un cookie
-  let role = req.cookies.get('user_role')?.value ?? null;
-
-  if (!role) {
-    const { data: user } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', session.user.id)
-      .maybeSingle();
-
-    role = (user?.role as string | undefined) ?? null;
-    if (!role) {
-      // Utilisatrice sans enregistrement users → renvoyer vers signup
-      return NextResponse.redirect(new URL('/signup', req.url));
-    }
-
-    res.cookies.set('user_role', role, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60, // 1 heure
-    });
-  }
-
-  const rule = ROLE_ROUTE_RULES.find((r) => pathname.startsWith(r.prefix));
-  if (rule && !rule.roles.includes(role)) {
-    const target = getDashboardForRole(role);
-    return NextResponse.redirect(new URL(target, req.url));
-  }
-
+  // Session valide : laisser passer, les pages server feront les contrôles de rôle/profil
   return res;
 }
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|sw\\.js|manifest\\.webmanifest).*)'],
 };
+

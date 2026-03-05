@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useTransition } from 'react';
+import { Smartphone, UserPlus, CalendarDays, ClipboardList, BarChart3 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { getNowInTimezone } from '@/lib/utils';
 import { approveUser, rejectUser } from './actions/registrations';
@@ -13,17 +14,18 @@ type StatBlock = {
 
 type PendingUser = {
   id: string;
-  name: string;
+  display_name: string;
   role: string;
   phone?: string | null;
   email?: string | null;
+  city?: string | null;
   created_at: string;
 };
 
 type UrgentMeal = {
   id: string;
   date: string;
-  type: string;
+  type?: string;
   beneficiary?: { user?: { name?: string | null } | null } | null;
 };
 
@@ -92,19 +94,19 @@ export default function AdminLiveDashboard({
 
     const [{ count: activeBeneficiaries }, { count: activeVolunteers }, { data: pendingUsers }] =
       await Promise.all([
-        supabase
+      supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
           .eq('role', 'beneficiary')
           .eq('approved', true),
-        supabase
+      supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
-          .in('role', ['cook', 'driver'])
+          .in('role', ['cook', 'driver', 'both'])
           .eq('approved', true),
-        supabase
+      supabase
           .from('users')
-          .select('id, name, role, phone, email, created_at')
+          .select('id, name, role, phone, neighborhood, created_at')
           .eq('approved', false)
           .order('created_at', { ascending: false }),
       ]);
@@ -120,7 +122,17 @@ export default function AdminLiveDashboard({
         return s;
       }),
     );
-    setPending(pendingUsers ?? []);
+    setPending(
+      (pendingUsers ?? []).map((u) => ({
+        id: u.id as string,
+        display_name: (u as { name?: string | null }).name ?? '',
+        role: u.role as string,
+        phone: (u as { phone?: string | null }).phone ?? null,
+        email: null,
+        city: (u as { neighborhood?: string | null }).neighborhood ?? null,
+        created_at: u.created_at as string,
+      })),
+    );
     setBump(true);
   }, []);
 
@@ -168,7 +180,7 @@ export default function AdminLiveDashboard({
         return s;
       }),
     );
-    setUrgent((urgentMeals as typeof urgent) ?? []);
+    setUrgent((urgentMeals as UrgentMeal[]) ?? []);
     setBump(true);
   }, [timezone]);
 
@@ -217,8 +229,9 @@ export default function AdminLiveDashboard({
           </p>
         </div>
         {live && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 animate-pulse">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" /> En direct
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-[pulse_1s_ease-in-out_infinite]" />
+            מחובר בשידור חי
           </span>
         )}
       </header>
@@ -236,19 +249,20 @@ export default function AdminLiveDashboard({
           </div>
           <ul className="divide-y divide-red-100 px-4">
             {urgent.map((m) => {
-              const benName =
-                (m.beneficiary as { user?: { name?: string } } | null)?.user?.name ?? undefined;
+              const meal = m as UrgentMeal;
+              const benName = meal.beneficiary?.user?.name ?? undefined;
+              const typeLabel = TYPE_LABELS[meal.type ?? ''] ?? meal.type;
               return (
-                <li key={m.id} className="flex items-center justify-between py-2.5">
+                <li key={meal.id} className="flex items-center justify-between py-2.5">
                   <span className="text-xs text-red-600">
-                    {new Date(m.date).toLocaleDateString('he-IL', {
+                    {new Date(meal.date).toLocaleDateString('he-IL', {
                       weekday: 'short',
                       day: 'numeric',
                       month: 'numeric',
                     })}
                   </span>
                   <span className="text-sm font-medium text-red-800 text-right">
-                    {TYPE_LABELS[m.type] ?? m.type}
+                    {typeLabel}
                     {benName ? <span className="text-xs text-red-500"> — {benName}</span> : null}
                   </span>
                 </li>
@@ -300,33 +314,41 @@ export default function AdminLiveDashboard({
         <div className="grid grid-cols-2 gap-3">
           <a
             href="/admin/registrations"
-            className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition"
+            className="group rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition hover:shadow-md hover:border-[#91006A]/30"
           >
-            <p className="text-lg mb-1">📝</p>
+            <div className="mb-2 text-[#91006A] transition-transform group-hover:scale-110">
+              <UserPlus size={20} />
+            </div>
             <p className="text-sm font-semibold text-zinc-900">אישור הרשמות</p>
             <p className="text-[11px] text-zinc-500">יולדות ומתנדבות חדשות</p>
           </a>
           <a
             href="/admin/calendar"
-            className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition"
+            className="group rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition hover:shadow-md hover:border-[#91006A]/30"
           >
-            <p className="text-lg mb-1">📅</p>
+            <div className="mb-2 text-[#91006A] transition-transform group-hover:scale-110">
+              <CalendarDays size={20} />
+            </div>
             <p className="text-sm font-semibold text-zinc-900">לוח ארוחות</p>
             <p className="text-[11px] text-zinc-500">כיסוי הארוחות בשבוע</p>
           </a>
           <a
             href="/admin/meals"
-            className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition"
+            className="group rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition hover:shadow-md hover:border-[#91006A]/30"
           >
-            <p className="text-lg mb-1">🍽️</p>
+            <div className="mb-2 text-[#91006A] transition-transform group-hover:scale-110">
+              <ClipboardList size={20} />
+            </div>
             <p className="text-sm font-semibold text-zinc-900">ניהול ארוחות</p>
             <p className="text-[11px] text-zinc-500">עריכה, מחיקה ושיבוץ</p>
           </a>
           <a
             href="/admin/stats"
-            className="rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition"
+            className="group rounded-2xl border border-[#F7D4E2] bg-white px-4 py-3 text-right shadow-sm active:scale-[0.98] transition hover:shadow-md hover:border-[#91006A]/30"
           >
-            <p className="text-lg mb-1">📊</p>
+            <div className="mb-2 text-[#91006A] transition-transform group-hover:scale-110">
+              <BarChart3 size={20} />
+            </div>
             <p className="text-sm font-semibold text-zinc-900">סטטיסטיקות</p>
             <p className="text-[11px] text-zinc-500">מעקב אחר פעילות</p>
           </a>
@@ -356,10 +378,10 @@ export default function AdminLiveDashboard({
             <ul className="divide-y divide-[#FBE4F0]">
               {pending.map((u) => (
                 <li key={u.id} className="px-4 py-3">
-                  <div className="flex w-full flex-col items-end gap-1 text-right">
+                    <div className="flex w-full flex-col items-end gap-1 text-right">
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="text-sm font-medium" style={{ color: '#4A0731' }}>
-                        {u.name}
+                        {u.display_name}
                       </span>
                       <span
                         className="rounded-full px-2 py-0.5 text-xs"
@@ -369,20 +391,21 @@ export default function AdminLiveDashboard({
                       </span>
                     </div>
 
-                    {u.phone && (
-                      <a href={`tel:${u.phone}`} className="text-xs underline" style={{ color: '#7C365F' }}>
-                        📞 {u.phone}
-                      </a>
-                    )}
-                    {u.email && (
-                      <span className="text-xs" style={{ color: '#7C365F' }}>
-                        ✉️ {u.email}
-                      </span>
-                    )}
-
-                    <span className="text-xs" style={{ color: '#7C365F' }}>
-                      נרשמה {new Date(u.created_at).toLocaleDateString('he-IL')}
-                    </span>
+                    <div className="flex flex-wrap flex-row-reverse gap-x-3 gap-y-1 text-xs text-slate-500 mb-2">
+                      {u.phone && (
+                        <a href={`tel:${u.phone}`} className="hover:underline flex items-center gap-1 font-semibold" style={{ color: 'var(--brand)' }}>
+                          <span>{u.phone}</span>
+                          <Smartphone size={12} />
+                        </a>
+                      )}
+                      {u.city && (
+                        <span className="flex items-center gap-1">
+                          <span>{u.city}</span>
+                          <span className="opacity-50">•</span>
+                        </span>
+                      )}
+                      <span>{new Date(u.created_at).toLocaleDateString('he-IL')}</span>
+                    </div>
 
                     <div className="mt-2 flex w-full justify-start gap-2 items-start">
                       <ApproveButton userId={u.id} />

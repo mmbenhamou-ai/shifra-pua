@@ -6,19 +6,58 @@ import { getSessionOrDevBypass, DEV_BYPASS_USER_ID } from '@/lib/auth-dev';
 import ProfileForm from './ProfileForm';
 import LogoutButton from '@/app/components/LogoutButton';
 import PushNotificationManager from '@/app/components/PushNotificationManager';
+import GoogleMapsScript from '@/app/components/GoogleMapsScript';
 
 export default async function ProfilePage() {
   const { session, user: sessionUser } = await getSessionOrDevBypass();
   if (!session) redirect('/login');
   if (!sessionUser) redirect('/signup');
 
-  let user: { name: string | null; phone: string | null; address: string | null; neighborhood: string | null; notes: string | null; role: string; email: string | null; notif_cooking: boolean; notif_delivery: boolean } | null;
+  let user: {
+    name: string | null;
+    phone: string | null;
+    address: string | null;
+    neighborhood: string | null;
+    notes: string | null;
+    role: string;
+    email: string | null;
+    notif_cooking: boolean;
+    notif_delivery: boolean;
+  } | null;
   if (sessionUser.id === DEV_BYPASS_USER_ID) {
-    user = { name: null, phone: null, address: null, neighborhood: null, notes: null, role: sessionUser.role, email: null, notif_cooking: true, notif_delivery: true };
+    user = {
+      name: null,
+      phone: null,
+      address: null,
+      neighborhood: null,
+      notes: null,
+      role: sessionUser.role,
+      email: null,
+      notif_cooking: true,
+      notif_delivery: true,
+    };
   } else {
     const supabase = await createSupabaseServerClient();
-    const { data } = await supabase.from('users').select('name, phone, address, neighborhood, notes, role, email, notif_cooking, notif_delivery').eq('id', session.user.id).single();
-    user = data;
+    const { data } = await supabase
+      .from('users')
+      .select('name, phone, address, neighborhood, role, email, notif_cooking, notif_delivery')
+      .eq('id', session.user.id)
+      .single();
+    user = data
+      ? ({
+          ...(data as {
+            name: string | null;
+            phone: string | null;
+            address: string | null;
+            neighborhood: string | null;
+            role: string;
+            email: string | null;
+            notif_cooking: boolean | null;
+            notif_delivery: boolean | null;
+          }),
+          notes: null,
+        } as typeof user)
+      : null;
   }
   if (!user) redirect('/signup');
 
@@ -123,6 +162,7 @@ export default async function ProfilePage() {
           <LogoutButton className="w-full flex items-center justify-center gap-2 py-4 bg-[#91006A] text-white font-bold rounded-xl shadow-lg shadow-[#91006A]/20 hover:bg-[#91006A]/90 transition-all" />
         </div>
       </main>
+      <GoogleMapsScript />
     </div>
   );
 }

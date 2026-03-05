@@ -19,7 +19,7 @@ export default async function CookSchedulePage() {
 
   const { data: meals } = await supabase
     .from('meals')
-    .select('id, date, type, status, pickup_time, beneficiary:beneficiary_id(user:user_id(name, address))')
+    .select('id, date, type, status, beneficiary:beneficiary_id(user:user_id(name, address))')
     .eq('cook_id', session.user.id)
     .gte('date', today.toISOString().split('T')[0])
     .lte('date', in14.toISOString().split('T')[0])
@@ -52,7 +52,6 @@ export default async function CookSchedulePage() {
                           style={{ backgroundColor: '#D1FAE5', color: '#065F46' }}>
                       {m.status === 'ready' ? 'מוכן' : 'לקחתי'}
                     </span>
-                    {m.pickup_time && <span className="text-xs text-zinc-400">⏰ {m.pickup_time}</span>}
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-zinc-900">

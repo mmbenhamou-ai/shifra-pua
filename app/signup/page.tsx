@@ -3,6 +3,8 @@
 import React, { useState, useCallback, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { registerUser } from './actions';
+import GoogleMapsScript from '@/app/components/GoogleMapsScript';
+import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,75 +62,7 @@ function inputCls(err: boolean) {
   ].join(' ');
 }
 
-function AddressAutocomplete({
-  value,
-  onChange,
-  onBlur,
-  placeholder,
-  className,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  onBlur: () => void;
-  placeholder: string;
-  className: string;
-}) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    let autocomplete: google.maps.places.Autocomplete | null = null;
-    let listener: google.maps.MapsEventListener | null = null;
-    let checkInterval: NodeJS.Timeout;
-
-    const initAutocomplete = () => {
-      if (!inputRef.current || !window.google?.maps?.places) return false;
-
-      autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        fields: ['formatted_address'],
-        componentRestrictions: { country: 'il' },
-      });
-
-      if (autocomplete) {
-        listener = autocomplete.addListener('place_changed', () => {
-          const place = autocomplete?.getPlace();
-          if (place?.formatted_address) {
-            onChange(place.formatted_address);
-          }
-        });
-      }
-      return true;
-    };
-
-    if (!initAutocomplete()) {
-      // If not ready, poll until the script is fully parsed
-      checkInterval = setInterval(() => {
-        if (initAutocomplete()) {
-          clearInterval(checkInterval);
-        }
-      }, 500);
-    }
-
-    return () => {
-      if (checkInterval) clearInterval(checkInterval);
-      if (listener && window.google?.maps?.event) {
-        window.google.maps.event.removeListener(listener);
-      }
-    };
-  }, [onChange]);
-
-  return (
-    <input
-      ref={inputRef}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      className={className}
-      autoComplete="off"
-    />
-  );
-}
 
 function Field({ label, children, optional = false }: { label: string; children: React.ReactNode, optional?: boolean }) {
   return (
@@ -314,7 +248,8 @@ function SignupWizard() {
     setPending(true);
     try {
       const fd = new FormData(e.currentTarget);
-      fd.set('role', effectiveRole);
+      const roleToSend = alsoDriver ? 'both' : effectiveRole;
+      fd.set('role', roleToSend);
       fd.set('name', `${cvFirstName.trim()} ${cvLastName.trim()}`);
       fd.append('also_driver', alsoDriver ? 'true' : 'false');
       fd.append('notif_cooking', notifCook ? 'true' : 'false');
@@ -810,6 +745,7 @@ export default function SignupPage() {
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#91006A]/5 rounded-full blur-3xl" />
       </div>
 
+      <GoogleMapsScript />
       <Suspense fallback={<div className="text-[#91006A] p-10 mt-10">טוען טופס...</div>}>
         <SignupWizard />
       </Suspense>
