@@ -27,12 +27,21 @@ export default async function Home() {
             </div>
             <span className="font-extrabold text-xl tracking-tight text-[#91006A]">שפרה ופועה</span>
           </div>
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-[#91006A] hover:bg-[#91006A]/5 px-4 py-2 rounded-full transition-colors"
-          >
-            התחברות
-          </Link>
+          {user ? (
+            <Link
+              href="/profile"
+              className="text-sm font-semibold text-[#91006A] hover:bg-[#91006A]/5 px-4 py-2 rounded-full transition-colors"
+            >
+              הפרופיל שלי
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-[#91006A] hover:bg-[#91006A]/5 px-4 py-2 rounded-full transition-colors"
+            >
+              התחברות
+            </Link>
+          )}
         </div>
       </header>
 
