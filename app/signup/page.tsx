@@ -267,17 +267,9 @@ function SignupWizard({ initialType }: SignupWizardProps) {
   }
 
   function handleBackGlobal() {
-    if (step === 1) {
-      router.replace('/');
-    } else if (step === 2 && initialType === 'beneficiary') {
-      router.replace('/');
-    } else if (step === 10 && initialType === 'volunteer') {
-      router.replace('/');
-    } else {
-      if (role === 'beneficiary' && step > 2) setStep(step - 1);
-      else if (role === 'beneficiary' && step === 2) setStep(1);
-      else if (step === 10) { setStep(1); setCategory('volunteer'); }
-    }
+    // Bouton retour global du header : revenir simplement à la page précédente.
+    // Cela évite les cas où la logique de step/initialType ne couvre pas tous les scénarios.
+    router.back();
   }
 
   return (
