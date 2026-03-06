@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, Suspense } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerUser } from './actions';
 import GoogleMapsScript from '@/app/components/GoogleMapsScript';
@@ -736,24 +736,15 @@ function SignupWizard({ initialType }: SignupWizardProps) {
   );
 }
 
-// ─── Client wrapper: lit type depuis l'URL après montage (sans useSearchParams, évite blocage en prod) ───
+// ─── Client wrapper: formulaire affiché tout de suite, type lu depuis l'URL en useEffect (évite blocage) ───
 
 function SignupPageClient() {
-  const [mounted, setMounted] = useState(false);
   const [initialType, setInitialType] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setInitialType(new URLSearchParams(window.location.search).get('type'));
     }
-    setMounted(true);
   }, []);
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0" dir="rtl">
-        <div className="text-[#91006A] p-10 mt-10">טוען טופס...</div>
-      </div>
-    );
-  }
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"
@@ -773,9 +764,5 @@ function SignupPageClient() {
 // ─── Entry Point ────────────────────────────────────────────────────────────────
 
 export default function SignupPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4 text-[#91006A]">טוען טופס...</div>}>
-      <SignupPageClient />
-    </Suspense>
-  );
+  return <SignupPageClient />;
 }
