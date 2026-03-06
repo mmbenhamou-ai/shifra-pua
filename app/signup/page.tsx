@@ -732,9 +732,20 @@ function SignupWizard() {
   );
 }
 
-// ─── Entry Point עם Suspense ────────────────────────────────────────────────
+// ─── Client wrapper: ne rend le formulaire qu'après montage (évite blocage useSearchParams) ───
 
-export default function SignupPage() {
+function SignupPageClient() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0" dir="rtl">
+        <div className="text-[#91006A] p-10 mt-10">טוען טופס...</div>
+      </div>
+    );
+  }
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"
@@ -751,4 +762,10 @@ export default function SignupPage() {
       </Suspense>
     </div>
   );
+}
+
+// ─── Entry Point ────────────────────────────────────────────────────────────────
+
+export default function SignupPage() {
+  return <SignupPageClient />;
 }

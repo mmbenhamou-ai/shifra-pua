@@ -75,7 +75,6 @@ export default function LoginPage() {
 
   const handleTestLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isTestLoginAvailable()) return;
     setError(null);
     setLoading(true);
     try {
@@ -139,16 +138,14 @@ export default function LoginPage() {
             <span>{loading ? 'טוען...' : 'המשך עם Google'}</span>
           </a>
 
-          {isTestLoginAvailable() && (
-            <button
-              type="button"
-              onClick={handleTestLogin}
-              disabled={loading}
-              className="w-full bg-slate-100 border border-slate-300 text-slate-600 font-medium h-12 rounded-xl text-sm hover:bg-slate-200 transition-all cursor-pointer disabled:opacity-70"
-            >
-              כניסה לבדיקה (Test)
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleTestLogin}
+            disabled={loading}
+            className="w-full bg-slate-100 border border-slate-300 text-slate-600 font-medium h-12 rounded-xl text-sm hover:bg-slate-200 transition-all cursor-pointer disabled:opacity-70"
+          >
+            כניסה לבדיקה (Test)
+          </button>
 
           {error && (
             <p className="bg-red-50 text-red-700 p-4 rounded-xl text-sm text-center">
