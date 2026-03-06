@@ -1,31 +1,40 @@
-import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  const next = url.searchParams.get('next') ?? '/';
+
+  const redirectUrl = new URL(next, url.origin);
+  const response = NextResponse.redirect(redirectUrl);
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
+    return response;
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-  if (exchangeError) {
-    return NextResponse.redirect(`${origin}/login`);
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
+      },
+      set(name: string, value: string, options?: Record<string, unknown>) {
+        response.cookies.set(name, value, options ?? {});
+      },
+      remove(name: string, options?: Record<string, unknown>) {
+        response.cookies.set(name, '', { ...options, maxAge: 0 });
+      },
+    },
+  });
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    // console.error('exchangeCodeForSession error:', error.message);
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.redirect(`${origin}/login`);
-  }
-
-  // Pour la V1 Phase 6, on se contente de créer la session
-  // et on laisse les pages protégées / layouts décider de la redirection
-  // en fonction de la table `users` et du champ `approved`.
-  return NextResponse.redirect(`${origin}/`);
+  return response;
 }
