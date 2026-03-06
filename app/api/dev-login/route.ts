@@ -12,8 +12,11 @@ const ROLE_EMAILS: Record<string, string> = {
 };
 const ROLE_PASSWORD = 'testpassword123';
 
+const isDevLoginAllowed = () =>
+  process.env.NODE_ENV === 'development' || process.env.ALLOW_DEV_LOGIN_IN_PROD === 'true';
+
 export async function POST(req: Request) {
-  if (process.env.NODE_ENV === 'production') {
+  if (!isDevLoginAllowed()) {
     return NextResponse.json({ error: 'Dev login disabled in production' }, { status: 403 });
   }
 

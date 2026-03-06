@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
+    // Optionnel: log serveur Vercel
     // console.error('exchangeCodeForSession error:', error.message);
   }
 

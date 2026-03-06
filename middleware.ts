@@ -12,6 +12,9 @@ const PROTECTED_PREFIXES = [
   '/volunteer',
 ];
 const PUBLIC = ['/login', '/signup', '/demo', '/debug'];
+// /api/debug/* autorisé pour diagnostic whoami
+// /api/dev-login : dev ou prod si ALLOW_DEV_LOGIN_IN_PROD
+
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

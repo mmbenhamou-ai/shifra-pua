@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { registerUser } from './actions';
 import GoogleMapsScript from '@/app/components/GoogleMapsScript';
@@ -269,9 +269,9 @@ function SignupWizard({ initialType }: SignupWizardProps) {
   function handleBackGlobal() {
     if (step === 1) {
       router.replace('/');
-    } else if (step === 2 && searchParams.get('type') === 'beneficiary') {
+    } else if (step === 2 && initialType === 'beneficiary') {
       router.replace('/');
-    } else if (step === 10 && searchParams.get('type') === 'volunteer') {
+    } else if (step === 10 && initialType === 'volunteer') {
       router.replace('/');
     } else {
       if (role === 'beneficiary' && step > 2) setStep(step - 1);
@@ -771,5 +771,9 @@ function SignupPageClient() {
 // ─── Entry Point ────────────────────────────────────────────────────────────────
 
 export default function SignupPage() {
-  return <SignupPageClient />;
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4 text-[#91006A]">טוען טופס...</div>}>
+      <SignupPageClient />
+    </Suspense>
+  );
 }
