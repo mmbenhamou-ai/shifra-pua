@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { registerUser } from './actions';
 import GoogleMapsScript from '@/app/components/GoogleMapsScript';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
@@ -736,12 +736,15 @@ function SignupWizard({ initialType }: SignupWizardProps) {
   );
 }
 
-// ─── Client wrapper: lit searchParams après montage, passe type au wizard (évite suspension) ───
+// ─── Client wrapper: lit type depuis l'URL après montage (sans useSearchParams, évite blocage en prod) ───
 
 function SignupPageClient() {
   const [mounted, setMounted] = useState(false);
-  const searchParams = useSearchParams();
+  const [initialType, setInitialType] = useState<string | null>(null);
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setInitialType(new URLSearchParams(window.location.search).get('type'));
+    }
     setMounted(true);
   }, []);
   if (!mounted) {
@@ -751,7 +754,6 @@ function SignupPageClient() {
       </div>
     );
   }
-  const initialType = searchParams.get('type');
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"
