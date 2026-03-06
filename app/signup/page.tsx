@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, Suspense, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { registerUser } from './actions';
 import GoogleMapsScript from '@/app/components/GoogleMapsScript';
@@ -139,9 +139,13 @@ function Row({ label, value }: { label: string; value: string }) {
 
 // ─── Main Component Wizard ────────────────────────────────────────────────────
 
-function SignupWizard() {
+interface SignupWizardProps {
+  /** type from URL (?type=volunteer|beneficiary), lu côté client pour éviter suspension useSearchParams */
+  initialType?: string | null;
+}
+
+function SignupWizard({ initialType }: SignupWizardProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [role, setRole] = useState<Role | null>(null);
   const [category, setCategory] = useState<MainCategory>(null);
@@ -163,9 +167,9 @@ function SignupWizard() {
   const [cvNeigh, setCvNeigh] = useState('');
   const [cvHasCar, setCvHasCar] = useState('false');
 
-  // Auto-select type from URL
+  // Auto-select type from URL (initialType passé par le parent pour éviter useSearchParams qui suspend)
   useEffect(() => {
-    const type = searchParams.get('type');
+    const type = initialType ?? null;
     if (type === 'beneficiary' && step === 1 && category === null) {
       setCategory('beneficiary');
       setRole('beneficiary');
@@ -175,7 +179,7 @@ function SignupWizard() {
       // On reste à l'étape 1 pour choisir le sous-type
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]); // On ne met que searchParams pour ne déclencher qu'au montage
+  }, [initialType]);
 
   const effectiveRole: Role = wantCook ? 'cook' : 'driver';
   const alsoDriver = wantCook && wantDriver;
@@ -732,10 +736,11 @@ function SignupWizard() {
   );
 }
 
-// ─── Client wrapper: ne rend le formulaire qu'après montage (évite blocage useSearchParams) ───
+// ─── Client wrapper: lit searchParams après montage, passe type au wizard (évite suspension) ───
 
 function SignupPageClient() {
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -746,6 +751,7 @@ function SignupPageClient() {
       </div>
     );
   }
+  const initialType = searchParams.get('type');
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"
@@ -757,9 +763,7 @@ function SignupPageClient() {
       </div>
 
       <GoogleMapsScript />
-      <Suspense fallback={<div className="text-[#91006A] p-10 mt-10">טוען טופס...</div>}>
-        <SignupWizard />
-      </Suspense>
+      <SignupWizard initialType={initialType} />
     </div>
   );
 }
