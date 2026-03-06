@@ -728,15 +728,15 @@ function SignupWizard({ initialType }: SignupWizardProps) {
   );
 }
 
-// ─── Client wrapper: formulaire affiché tout de suite, type lu depuis l'URL en useEffect (évite blocage) ───
+// ─── Client wrapper: formulaire affiché tout de suite, type lu depuis l'URL (évite blocage) ───
 
 function SignupPageClient() {
-  const [initialType, setInitialType] = useState<string | null>(null);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setInitialType(new URLSearchParams(window.location.search).get('type'));
-    }
-  }, []);
+  const [initialType] = useState<string | null>(() =>
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('type')
+      : null,
+  );
+
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#f8f5f8] relative z-0"

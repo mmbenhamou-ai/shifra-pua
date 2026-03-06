@@ -188,7 +188,7 @@ test.describe('Phase 6 — concurrence', () => {
 // TEST 4 — Release cook
 // ─────────────────────────────────────────────────────────────────────────────
 test.describe('Phase 6 — release', () => {
-  test('cook peut relâcher un repas qu'elle a pris', async ({ browser }) => {
+  test("cook peut relâcher un repas qu'elle a pris", async ({ browser }) => {
     const { page, ctx } = await loginAs(browser, 'cook');
     await page.goto(`${BASE}/cook`);
     await page.waitForLoadState('networkidle');

@@ -45,11 +45,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     hasCookie,
     userError: userError
-      ? {
-          message: userError.message,
-          code: (userError as any).code ?? null,
-        }
-      : null,
+  ? {
+      message: userError.message,
+      code: (userError as { code?: string | null } | null)?.code ?? null,
+    }
+  : null,
     user: user ? { id: user.id, email: user.email ?? null } : null,
     profile,
     profileError,
