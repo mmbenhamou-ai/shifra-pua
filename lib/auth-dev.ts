@@ -36,17 +36,17 @@ export async function getSessionOrDevBypass(): Promise<{
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { session: null, user: null };
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!authUser) return { session: null, user: null };
 
   const { data: user } = await supabase
     .from('users')
     .select('id, role, approved, also_driver')
-    .eq('id', session.user.id)
+    .eq('id', authUser.id)
     .maybeSingle();
 
   return {
-    session: session as { user: { id: string } },
+    session: { user: { id: authUser.id } },
     user: user ? { id: user.id, role: user.role, approved: user.approved ?? false, also_driver: user.also_driver ?? false } : null,
   };
 }

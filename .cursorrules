@@ -91,3 +91,21 @@ Ces règles s’appliquent tant qu’elles ne contredisent pas des instructions 
 - **Avant toute modification** : vérifier `pwd`, `git rev-parse --show-toplevel`, `git worktree list` ; ne pas modifier les dossiers sous `/Users/mmb/.cursor/worktrees/` pour des fixes de prod.
 - **Avant d’annoncer qu’un fix est fait** : vérifier que `git status` et `git diff --stat` dans le repo principal montrent bien les changements, et que `npm run build` passe.
 - Voir [docs/GIT_WORKTREE_SAFETY.md](docs/GIT_WORKTREE_SAFETY.md) pour la procédure complète.
+
+### Règle obligatoire avant toute édition
+
+Before editing any file, always run:
+- `pwd`
+- `git rev-parse --show-toplevel`
+- `git worktree list`
+- `git status --short`
+
+Only modify files inside:
+- `/Users/mmb/Documents/Cursor/shifra-pua`
+
+Never modify files inside:
+- `/Users/mmb/.cursor/worktrees/`
+
+If useful changes are found in a worktree, explicitly report them and re-apply them in the main repo before continuing.
+
+Never claim a fix is done unless the change is visible in `git status` and `git diff` of the main repo.
